@@ -3,13 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>ひらがななぞり教材</title>
+<title>ひらがななぞり教材（iPad最適化版）</title>
 <style>
 body{
   font-family:sans-serif;
   margin:0;
   text-align:center;
   touch-action:none;
+  -webkit-user-select:none;
+  user-select:none;
+  -webkit-touch-callout:none;
 }
 
 .container{
@@ -77,6 +80,10 @@ button{
 
 <script>
 
+// iPadジェスチャ無効化
+window.addEventListener("gesturestart", e => e.preventDefault());
+document.addEventListener("touchmove", e => { if(!finished) e.preventDefault(); }, {passive:false});
+
 const words=[
   {text:"いぬ",emoji:"🐶"},{text:"ねこ",emoji:"🐱"},{text:"さかな",emoji:"🐟"},{text:"とり",emoji:"🐦"},{text:"くるま",emoji:"🚗"},
   {text:"でんしゃ",emoji:"🚃"},{text:"りんご",emoji:"🍎"},{text:"みかん",emoji:"🍊"},{text:"ばなな",emoji:"🍌"},{text:"すいか",emoji:"🍉"},
@@ -103,7 +110,6 @@ function toggleEraser(){
 function toggleStamp(){
   if(!finished) return;
   tool = (tool==="stamp") ? "pen" : "stamp";
-  document.getElementById("stampBtn").classList.toggle("active");
 }
 
 function createGrid(text){
@@ -112,7 +118,6 @@ function createGrid(text){
 
   const size=window.innerWidth*0.1;
   const h=size*text.length;
-
   const pad=50;
 
   wrap.style.width=(size+pad*2)+"px";
@@ -121,7 +126,6 @@ function createGrid(text){
   wrap.style.boxSizing="border-box";
 
   const grid=document.createElement("div");
-  grid.className="grid";
 
   text.split("").forEach(c=>{
     const cell=document.createElement("div");
@@ -145,16 +149,16 @@ function createGrid(text){
   sctx.lineCap="round";
   sctx.strokeStyle="black";
 
-  tctx.lineWidth=6;
+  tctx.lineWidth=8;
   tctx.lineCap="round";
   tctx.strokeStyle="red";
 
   student.style.position="absolute";
   teacher.style.position="absolute";
-  student.style.left="0";
   student.style.top="0";
-  teacher.style.left="0";
   teacher.style.top="0";
+  student.style.left="0";
+  teacher.style.left="0";
 
   student.style.zIndex=1;
   teacher.style.zIndex=2;
@@ -182,7 +186,7 @@ function createGrid(text){
 
     if(tool==="eraser"){
       sctx.globalCompositeOperation="destination-out";
-      sctx.lineWidth=20;
+      sctx.lineWidth=25;
     }else{
       sctx.globalCompositeOperation="source-over";
       sctx.lineWidth=6;
