@@ -2,8 +2,10 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>ひらがななぞり教材（iPad最適化版）</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>ひらがななぞり教材（iPad授業専用）</title>
 <style>
 body{
   font-family:sans-serif;
@@ -13,7 +15,25 @@ body{
   -webkit-user-select:none;
   user-select:none;
   -webkit-touch-callout:none;
+  overflow:hidden;
+  height:100vh;
 }
+
+h2{margin:10px 0;}
+
+.toolbar{
+  display:flex;
+  justify-content:center;
+  flex-wrap:wrap;
+  gap:6px;
+}
+
+button{
+  font-size:18px;
+  padding:10px 14px;
+}
+
+button.active{background:#ddd;}
 
 .container{
   display:flex;
@@ -36,8 +56,14 @@ body{
   height:7vw;
 }
 
-.grid{
+.gridWrap{
   position:relative;
+}
+
+.grid{
+  position:absolute;
+  top:0;
+  left:0;
 }
 
 .cell{
@@ -57,38 +83,28 @@ canvas{
   left:0;
   touch-action:none;
 }
-
-button{
-  font-size:18px;
-  padding:10px 16px;
-  margin:6px;
-}
-
-.active{background:#ddd;}
 </style>
 </head>
 <body>
 
 <h2>ひらがなをなぞろう</h2>
 
-<button onclick="startLesson()">できました</button>
-<button onclick="toggleEraser()">けしゴム</button>
-<button id="stampBtn" onclick="toggleStamp()" disabled>🌸花丸</button>
-<button id="reloadBtn" onclick="reloadLesson()" disabled>リロード</button>
+<div class="toolbar">
+  <button onclick="startLesson()">できました</button>
+  <button onclick="toggleEraser()">けしゴム</button>
+  <button id="stampBtn" onclick="toggleStamp()" disabled>🌸花丸</button>
+  <button id="reloadBtn" onclick="reloadLesson()" disabled>リロード</button>
+</div>
 
 <div class="container" id="container"></div>
 
 <script>
 
-// iPadジェスチャ無効化
-window.addEventListener("gesturestart", e => e.preventDefault());
-document.addEventListener("touchmove", e => { if(!finished) e.preventDefault(); }, {passive:false});
-
 const words=[
   {text:"いぬ",emoji:"🐶"},{text:"ねこ",emoji:"🐱"},{text:"さかな",emoji:"🐟"},{text:"とり",emoji:"🐦"},{text:"くるま",emoji:"🚗"},
   {text:"でんしゃ",emoji:"🚃"},{text:"りんご",emoji:"🍎"},{text:"みかん",emoji:"🍊"},{text:"ばなな",emoji:"🍌"},{text:"すいか",emoji:"🍉"},
   {text:"ぶどう",emoji:"🍇"},{text:"もも",emoji:"🍑"},{text:"めろん",emoji:"🍈"},{text:"いちご",emoji:"🍓"},{text:"きりん",emoji:"🦒"},
-  {text:"ぞう",emoji:"🐘"},{text:"らいおん",emoji:"🦁"},{text:"うさぎ",emoji:"🐰"},{text:"たぬき",emoji:"🦝"},{text:"きつね",emoji:"🦊"},
+  {text:"ぞう",emoji:"🐘"},{text:"らいおん",emoji:"🦁"},{text:"うさぎ",emoji:"🐰"},{text:"きつね",emoji:"🦊"},{text:"たぬき",emoji:"🦝"},
   {text:"みず",emoji:"💧"},{text:"やま",emoji:"⛰️"},{text:"かわ",emoji:"🏞️"},{text:"そら",emoji:"☁️"},{text:"たいよう",emoji:"☀️"},
   {text:"つき",emoji:"🌙"},{text:"ほし",emoji:"⭐"},{text:"はな",emoji:"🌸"},{text:"くさ",emoji:"🌿"},{text:"あめ",emoji:"☔"},
   {text:"ゆき",emoji:"❄️"},{text:"がっこう",emoji:"🏫"},{text:"せんせい",emoji:"👩‍🏫"},{text:"ともだち",emoji:"👫"},{text:"あさ",emoji:"🌅"},
@@ -104,28 +120,30 @@ function getWords(n){
 
 function toggleEraser(){
   if(finished) return;
-  tool = (tool==="eraser") ? "pen" : "eraser";
+  tool = tool==="eraser" ? "pen" : "eraser";
 }
 
 function toggleStamp(){
   if(!finished) return;
-  tool = (tool==="stamp") ? "pen" : "stamp";
+  tool = tool==="stamp" ? "pen" : "stamp";
+  document.getElementById("stampBtn").classList.toggle("active");
 }
 
 function createGrid(text){
   const wrap=document.createElement("div");
-  wrap.style.position="relative";
+  wrap.className="gridWrap";
 
   const size=window.innerWidth*0.1;
   const h=size*text.length;
-  const pad=50;
+  const pad=60;
 
   wrap.style.width=(size+pad*2)+"px";
   wrap.style.height=(h+pad*2)+"px";
-  wrap.style.padding=pad+"px";
-  wrap.style.boxSizing="border-box";
 
   const grid=document.createElement("div");
+  grid.className="grid";
+  grid.style.left=pad+"px";
+  grid.style.top=pad+"px";
 
   text.split("").forEach(c=>{
     const cell=document.createElement("div");
@@ -262,10 +280,14 @@ function reloadLesson(){
   tool="pen";
   document.getElementById("stampBtn").disabled=true;
   document.getElementById("reloadBtn").disabled=true;
+  document.getElementById("stampBtn").classList.remove("active");
   render();
 }
 
 render();
+
+window.addEventListener("gesturestart",e=>e.preventDefault());
+document.addEventListener("touchmove",e=>{if(!finished)e.preventDefault();},{passive:false});
 
 </script>
 
