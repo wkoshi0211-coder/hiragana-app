@@ -1,1 +1,218 @@
-hello
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>ひらがななぞり教材（iPad対応）</title>
+<style>
+body {
+  font-family: sans-serif;
+  text-align: center;
+  margin: 0;
+  touch-action: none; /* スクロール防止 */
+}
+
+.container {
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-start;
+  width: 100vw;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+.word {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+
+.image {
+  font-size: 6vw;
+  height: 7vw;
+}
+
+.grid {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.cell {
+  width: 10vw;
+  height: 10vw;
+  border: 1px solid #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 5vw;
+  color: #bbb;
+  position: relative;
+}
+
+.cell::before, .cell::after {
+  content: "";
+  position: absolute;
+  background: #eee;
+}
+
+.cell::before { width: 100%; height: 1px; top: 50%; left: 0; }
+.cell::after { height: 100%; width: 1px; left: 50%; top: 0; }
+
+canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  touch-action: none;
+}
+
+button {
+  font-size: 20px;
+  padding: 12px 24px;
+  margin: 10px;
+}
+</style>
+</head>
+<body>
+
+<h2>ひらがなをなぞろう</h2>
+<button id="mainButton" onclick="onMainButtonClick()">できました</button>
+<div class="container" id="container"></div>
+
+<script>
+const words = [
+  { text: "いぬ", emoji: "🐶" },
+  { text: "ねこ", emoji: "🐱" },
+  { text: "さかな", emoji: "🐟" },
+  { text: "とり", emoji: "🐦" },
+  { text: "くるま", emoji: "🚗" },
+  { text: "でんしゃ", emoji: "🚃" },
+  { text: "りんご", emoji: "🍎" },
+  { text: "みかん", emoji: "🍊" },
+  { text: "ばなな", emoji: "🍌" },
+  { text: "すいか", emoji: "🍉" },
+  { text: "ぱん", emoji: "🍞" },
+  { text: "ごはん", emoji: "🍚" },
+  { text: "けーき", emoji: "🍰" },
+  { text: "ぼーる", emoji: "⚽" },
+  { text: "えんぴつ", emoji: "✏️" },
+  { text: "かばん", emoji: "🎒" },
+  { text: "くつ", emoji: "👟" },
+  { text: "ぼうし", emoji: "🧢" }
+];
+
+let finished = false;
+
+function getRandomWords(num) {
+  const shuffled = [...words].sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, num);
+}
+
+function convertChar(char) {
+  if (char === "ー") return "｜";
+  return char;
+}
+
+function createGrid(text) {
+  const grid = document.createElement("div");
+  grid.className = "grid";
+
+  const chars = text.split("").map(convertChar);
+  const cellSize = window.innerWidth * 0.1;
+
+  chars.forEach(char => {
+    const cell = document.createElement("div");
+    cell.className = "cell";
+    cell.textContent = char;
+    grid.appendChild(cell);
+  });
+
+  const canvas = document.createElement("canvas");
+  canvas.width = cellSize;
+  canvas.height = cellSize * chars.length;
+
+  const ctx = canvas.getContext("2d");
+  ctx.lineWidth = 6;
+  ctx.lineCap = "round";
+
+  let drawing = false;
+
+  function getPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    return {
+      x: clientX - rect.left,
+      y: clientY - rect.top
+    };
+  }
+
+  // iPad完全対応（Pointer Events）
+  canvas.addEventListener("pointerdown", (e) => {
+    drawing = true;
+    const pos = getPos(e);
+    ctx.beginPath();
+    ctx.moveTo(pos.x, pos.y);
+  });
+
+  canvas.addEventListener("pointermove", (e) => {
+    if (!drawing) return;
+    const pos = getPos(e);
+    ctx.lineTo(pos.x, pos.y);
+    ctx.stroke();
+  });
+
+  canvas.addEventListener("pointerup", () => {
+    drawing = false;
+    ctx.beginPath();
+  });
+
+  canvas.addEventListener("pointerleave", () => {
+    drawing = false;
+    ctx.beginPath();
+  });
+
+  grid.appendChild(canvas);
+  return grid;
+}
+
+function render() {
+  const container = document.getElementById("container");
+  container.innerHTML = "";
+
+  const selected = getRandomWords(8);
+
+  selected.forEach(word => {
+    const wordDiv = document.createElement("div");
+    wordDiv.className = "word";
+
+    const img = document.createElement("div");
+    img.className = "image";
+    img.textContent = word.emoji;
+
+    wordDiv.appendChild(img);
+    wordDiv.appendChild(createGrid(word.text));
+
+    container.appendChild(wordDiv);
+  });
+}
+
+function onMainButtonClick() {
+  const button = document.getElementById("mainButton");
+
+  if (!finished) {
+    finished = true;
+    button.textContent = "リロード";
+  } else {
+    finished = false;
+    button.textContent = "できました";
+    render();
+  }
+}
+
+render();
+</script>
+
+</body>
+</html>
