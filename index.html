@@ -3,217 +3,267 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>ひらがななぞり教材（iPad対応）</title>
+<title>ひらがななぞり教材</title>
 <style>
-body {
-  font-family: sans-serif;
-  text-align: center;
-  margin: 0;
-  touch-action: none; /* スクロール防止 */
+body{
+  font-family:sans-serif;
+  margin:0;
+  text-align:center;
+  touch-action:none;
 }
 
-.container {
-  display: flex;
-  justify-content: space-around;
-  align-items: flex-start;
-  width: 100vw;
-  padding: 10px;
-  box-sizing: border-box;
+.container{
+  display:flex;
+  justify-content:space-around;
+  align-items:flex-start;
+  padding:10px;
+  width:100vw;
+  box-sizing:border-box;
 }
 
-.word {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  flex: 1;
+.word{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
 }
 
-.image {
-  font-size: 6vw;
-  height: 7vw;
+.image{
+  font-size:6vw;
+  height:7vw;
 }
 
-.grid {
-  display: flex;
-  flex-direction: column;
-  position: relative;
+.grid{
+  position:relative;
 }
 
-.cell {
-  width: 10vw;
-  height: 10vw;
-  border: 1px solid #ccc;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 5vw;
-  color: #bbb;
-  position: relative;
+.cell{
+  width:10vw;
+  height:10vw;
+  border:1px solid #ccc;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:5vw;
+  color:#bbb;
 }
 
-.cell::before, .cell::after {
-  content: "";
-  position: absolute;
-  background: #eee;
+canvas{
+  position:absolute;
+  top:0;
+  left:0;
+  touch-action:none;
 }
 
-.cell::before { width: 100%; height: 1px; top: 50%; left: 0; }
-.cell::after { height: 100%; width: 1px; left: 50%; top: 0; }
-
-canvas {
-  position: absolute;
-  top: 0;
-  left: 0;
-  touch-action: none;
+button{
+  font-size:18px;
+  padding:10px 16px;
+  margin:6px;
 }
 
-button {
-  font-size: 20px;
-  padding: 12px 24px;
-  margin: 10px;
-}
+.active{background:#ddd;}
 </style>
 </head>
 <body>
 
 <h2>ひらがなをなぞろう</h2>
-<button id="mainButton" onclick="onMainButtonClick()">できました</button>
+
+<button onclick="startLesson()">できました</button>
+<button onclick="toggleEraser()">けしゴム</button>
+<button id="stampBtn" onclick="toggleStamp()" disabled>🌸花丸</button>
+<button id="reloadBtn" onclick="reloadLesson()" disabled>リロード</button>
+
 <div class="container" id="container"></div>
 
 <script>
-const words = [
-  { text: "いぬ", emoji: "🐶" },
-  { text: "ねこ", emoji: "🐱" },
-  { text: "さかな", emoji: "🐟" },
-  { text: "とり", emoji: "🐦" },
-  { text: "くるま", emoji: "🚗" },
-  { text: "でんしゃ", emoji: "🚃" },
-  { text: "りんご", emoji: "🍎" },
-  { text: "みかん", emoji: "🍊" },
-  { text: "ばなな", emoji: "🍌" },
-  { text: "すいか", emoji: "🍉" },
-  { text: "ぱん", emoji: "🍞" },
-  { text: "ごはん", emoji: "🍚" },
-  { text: "けーき", emoji: "🍰" },
-  { text: "ぼーる", emoji: "⚽" },
-  { text: "えんぴつ", emoji: "✏️" },
-  { text: "かばん", emoji: "🎒" },
-  { text: "くつ", emoji: "👟" },
-  { text: "ぼうし", emoji: "🧢" }
+
+const words=[
+  {text:"いぬ",emoji:"🐶"},{text:"ねこ",emoji:"🐱"},{text:"さかな",emoji:"🐟"},{text:"とり",emoji:"🐦"},{text:"くるま",emoji:"🚗"},
+  {text:"でんしゃ",emoji:"🚃"},{text:"りんご",emoji:"🍎"},{text:"みかん",emoji:"🍊"},{text:"ばなな",emoji:"🍌"},{text:"すいか",emoji:"🍉"},
+  {text:"ぶどう",emoji:"🍇"},{text:"もも",emoji:"🍑"},{text:"めろん",emoji:"🍈"},{text:"いちご",emoji:"🍓"},{text:"きりん",emoji:"🦒"},
+  {text:"ぞう",emoji:"🐘"},{text:"らいおん",emoji:"🦁"},{text:"うさぎ",emoji:"🐰"},{text:"たぬき",emoji:"🦝"},{text:"きつね",emoji:"🦊"},
+  {text:"みず",emoji:"💧"},{text:"やま",emoji:"⛰️"},{text:"かわ",emoji:"🏞️"},{text:"そら",emoji:"☁️"},{text:"たいよう",emoji:"☀️"},
+  {text:"つき",emoji:"🌙"},{text:"ほし",emoji:"⭐"},{text:"はな",emoji:"🌸"},{text:"くさ",emoji:"🌿"},{text:"あめ",emoji:"☔"},
+  {text:"ゆき",emoji:"❄️"},{text:"がっこう",emoji:"🏫"},{text:"せんせい",emoji:"👩‍🏫"},{text:"ともだち",emoji:"👫"},{text:"あさ",emoji:"🌅"},
+  {text:"ひる",emoji:"🌞"},{text:"よる",emoji:"🌃"},{text:"いけ",emoji:"🪷"},{text:"どうぶつ",emoji:"🐾"},{text:"くも",emoji:"☁️"}
 ];
 
-let finished = false;
+let finished=false;
+let tool="pen";
 
-function getRandomWords(num) {
-  const shuffled = [...words].sort(() => 0.5 - Math.random());
-  return shuffled.slice(0, num);
+function getWords(n){
+  return [...words].sort(()=>Math.random()-0.5).slice(0,n);
 }
 
-function convertChar(char) {
-  if (char === "ー") return "｜";
-  return char;
+function toggleEraser(){
+  if(finished) return;
+  tool = (tool==="eraser") ? "pen" : "eraser";
 }
 
-function createGrid(text) {
-  const grid = document.createElement("div");
-  grid.className = "grid";
+function toggleStamp(){
+  if(!finished) return;
+  tool = (tool==="stamp") ? "pen" : "stamp";
+  document.getElementById("stampBtn").classList.toggle("active");
+}
 
-  const chars = text.split("").map(convertChar);
-  const cellSize = window.innerWidth * 0.1;
+function createGrid(text){
+  const wrap=document.createElement("div");
+  wrap.style.position="relative";
 
-  chars.forEach(char => {
-    const cell = document.createElement("div");
-    cell.className = "cell";
-    cell.textContent = char;
+  const size=window.innerWidth*0.1;
+  const h=size*text.length;
+
+  const pad=50;
+
+  wrap.style.width=(size+pad*2)+"px";
+  wrap.style.height=(h+pad*2)+"px";
+  wrap.style.padding=pad+"px";
+  wrap.style.boxSizing="border-box";
+
+  const grid=document.createElement("div");
+  grid.className="grid";
+
+  text.split("").forEach(c=>{
+    const cell=document.createElement("div");
+    cell.className="cell";
+    cell.textContent=c;
     grid.appendChild(cell);
   });
 
-  const canvas = document.createElement("canvas");
-  canvas.width = cellSize;
-  canvas.height = cellSize * chars.length;
+  const student=document.createElement("canvas");
+  const teacher=document.createElement("canvas");
 
-  const ctx = canvas.getContext("2d");
-  ctx.lineWidth = 6;
-  ctx.lineCap = "round";
+  student.width=size+pad*2;
+  student.height=h+pad*2;
+  teacher.width=size+pad*2;
+  teacher.height=h+pad*2;
 
-  let drawing = false;
+  const sctx=student.getContext("2d");
+  const tctx=teacher.getContext("2d");
 
-  function getPos(e) {
-    const rect = canvas.getBoundingClientRect();
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    return {
-      x: clientX - rect.left,
-      y: clientY - rect.top
-    };
+  sctx.lineWidth=6;
+  sctx.lineCap="round";
+  sctx.strokeStyle="black";
+
+  tctx.lineWidth=6;
+  tctx.lineCap="round";
+  tctx.strokeStyle="red";
+
+  student.style.position="absolute";
+  teacher.style.position="absolute";
+  student.style.left="0";
+  student.style.top="0";
+  teacher.style.left="0";
+  teacher.style.top="0";
+
+  student.style.zIndex=1;
+  teacher.style.zIndex=2;
+
+  teacher.style.pointerEvents="none";
+
+  let drawing=false;
+
+  function pos(e,c){
+    const r=c.getBoundingClientRect();
+    return {x:e.clientX-r.left,y:e.clientY-r.top};
   }
 
-  // iPad完全対応（Pointer Events）
-  canvas.addEventListener("pointerdown", (e) => {
-    drawing = true;
-    const pos = getPos(e);
-    ctx.beginPath();
-    ctx.moveTo(pos.x, pos.y);
+  student.addEventListener("pointerdown",e=>{
+    if(finished) return;
+    drawing=true;
+    const p=pos(e,student);
+    sctx.beginPath();
+    sctx.moveTo(p.x,p.y);
   });
 
-  canvas.addEventListener("pointermove", (e) => {
-    if (!drawing) return;
-    const pos = getPos(e);
-    ctx.lineTo(pos.x, pos.y);
-    ctx.stroke();
+  student.addEventListener("pointermove",e=>{
+    if(!drawing||finished) return;
+    const p=pos(e,student);
+
+    if(tool==="eraser"){
+      sctx.globalCompositeOperation="destination-out";
+      sctx.lineWidth=20;
+    }else{
+      sctx.globalCompositeOperation="source-over";
+      sctx.lineWidth=6;
+    }
+
+    sctx.lineTo(p.x,p.y);
+    sctx.stroke();
   });
 
-  canvas.addEventListener("pointerup", () => {
-    drawing = false;
-    ctx.beginPath();
+  student.addEventListener("pointerup",()=>{
+    drawing=false;
+    sctx.globalCompositeOperation="source-over";
   });
 
-  canvas.addEventListener("pointerleave", () => {
-    drawing = false;
-    ctx.beginPath();
+  teacher.addEventListener("pointerdown",e=>{
+    if(!finished) return;
+
+    const p=pos(e,teacher);
+
+    if(tool==="stamp"){
+      tctx.font="90px serif";
+      tctx.fillText("🌸",p.x-40,p.y+30);
+      return;
+    }
+
+    drawing=true;
+    tctx.beginPath();
+    tctx.moveTo(p.x,p.y);
   });
 
-  grid.appendChild(canvas);
-  return grid;
+  teacher.addEventListener("pointermove",e=>{
+    if(!drawing||tool==="stamp"||!finished) return;
+    const p=pos(e,teacher);
+    tctx.lineTo(p.x,p.y);
+    tctx.stroke();
+  });
+
+  teacher.addEventListener("pointerup",()=>drawing=false);
+
+  wrap.appendChild(grid);
+  wrap.appendChild(student);
+  wrap.appendChild(teacher);
+
+  return wrap;
 }
 
-function render() {
-  const container = document.getElementById("container");
-  container.innerHTML = "";
+function render(){
+  const c=document.getElementById("container");
+  c.innerHTML="";
+  getWords(5).forEach(w=>{
+    const d=document.createElement("div");
+    d.className="word";
 
-  const selected = getRandomWords(8);
+    const img=document.createElement("div");
+    img.className="image";
+    img.textContent=w.emoji;
 
-  selected.forEach(word => {
-    const wordDiv = document.createElement("div");
-    wordDiv.className = "word";
-
-    const img = document.createElement("div");
-    img.className = "image";
-    img.textContent = word.emoji;
-
-    wordDiv.appendChild(img);
-    wordDiv.appendChild(createGrid(word.text));
-
-    container.appendChild(wordDiv);
+    d.appendChild(img);
+    d.appendChild(createGrid(w.text));
+    c.appendChild(d);
   });
 }
 
-function onMainButtonClick() {
-  const button = document.getElementById("mainButton");
+function startLesson(){
+  finished=true;
+  document.getElementById("stampBtn").disabled=false;
+  document.getElementById("reloadBtn").disabled=false;
+  document.querySelectorAll("canvas").forEach(c=>c.style.pointerEvents="auto");
+}
 
-  if (!finished) {
-    finished = true;
-    button.textContent = "リロード";
-  } else {
-    finished = false;
-    button.textContent = "できました";
-    render();
-  }
+function reloadLesson(){
+  finished=false;
+  tool="pen";
+  document.getElementById("stampBtn").disabled=true;
+  document.getElementById("reloadBtn").disabled=true;
+  render();
 }
 
 render();
+
 </script>
 
 </body>
 </html>
-
