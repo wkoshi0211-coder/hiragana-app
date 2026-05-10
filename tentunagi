@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>点つなぎ（30パターン・レベル選択）</title>
+<style>
+  body { font-family: sans-serif; text-align: center; margin: 0; overflow: hidden; }
+  canvas { border: 2px solid #333; touch-action: none; background: #fff; display:block; margin:0 auto; }
+  #msg { position: fixed; bottom: 10px; width: 100%; font-size: 18px; }
+
+  #menu {
+    position: fixed;
+    top:0; left:0;
+    width:100vw; height:100vh;
+    background:#fff;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    gap:20px;
+    z-index:20;
+  }
+
+  button { font-size:24px; padding:16px 32px; }
+
+  #hanamaru {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    display: none;
+    flex-direction:column;
+    justify-content: center;
+    align-items: center;
+    background: rgba(255,255,255,0.92);
+    font-size: 100px;
+    color: #e6007a;
+    font-weight: bold;
+    z-index: 10;
+  }
+
+  #nextBtn {
+    margin-top: 20px;
+    font-size: 24px;
+    padding: 10px 20px;
+  }
+</style>
+</head>
+<body>
+
+<div id="menu">
+  <div style="font-size:22px;">レベルをえらんでね</div>
+  <button onclick="startGame(30)">30まで</button>
+  <button onclick="startGame(50)">50まで</button>
+  <button onclick="startGame(100)">100まで</button>
+</div>
+
+<canvas id="canvas"></canvas>
+<div id="msg"></div>
+
+<div id="hanamaru">
+  🌸 花まる 🌸
+  <button id="nextBtn" onclick="nextPattern()">次のもんだいへ</button>
+</div>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const menu = document.getElementById('menu');
+const msg = document.getElementById('msg');
+const hanamaru = document.getElementById('hanamaru');
+
+let current = 1;
+let maxNum = 30;
+let lines = [];
+let points = [];
+let patternIndex = 0;
+const PATTERN_COUNT = 30;
+
+// --- seed random ---
+function seedRandom(seed){
+  return function(){
+    seed = (seed * 9301 + 49297) % 233280;
+    return seed / 233280;
+  }
+}
+
+let rand = Math.random;
+
+function startGame(n){
+  maxNum = n;
+  menu.style.display='none';
+  patternIndex = 0;
+  reset();
+}
+
+function nextPattern(){
+  hanamaru.style.display='none';
+  patternIndex = (patternIndex + 1) % PATTERN_COUNT;
+  reset();
+}
+
+function reset(){
+  current = 1;
+  lines = [];
+  rand = seedRandom(patternIndex + maxNum);
+  generatePoints();
+  draw();
+  msg.innerText = `1から順にタップ（${maxNum}まで） パターン${patternIndex+1}/30`;
+}
+
+function resize(){
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight - 40;
+  if(points.length>0) draw();
+}
+
+function dist(a,b){ return Math.hypot(a.x-b.x,a.y-b.y); }
+
+function clamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
+
+function generatePoints(){
+  const w=canvas.width;
+  const h=canvas.height;
+  const margin=60;
+  const minDist=45;
+
+  const pts=[];
+
+  let attempts=0;
+  while(pts.length < maxNum && attempts < 10000){
+    attempts++;
+
+    let x = margin + rand()*(w-margin*2);
+    let y = margin + rand()*(h-margin*2);
+
+    const cand={x,y};
+
+    let ok=true;
+    for(const p of pts){
+      if(dist(p,cand)<minDist){ ok=false; break; }
+    }
+
+    if(ok){ pts.push(cand); }
+  }
+
+  while(pts.length < maxNum){
+    pts.push({
+      x: margin + rand()*(w-margin*2),
+      y: margin + rand()*(h-margin*2)
+    });
+  }
+
+  // 近接順で自然な流れ
+  const ordered=[];
+  let used=new Set();
+  let cur=pts[0];
+  ordered.push(cur);
+  used.add(0);
+
+  for(let i=1;i<pts.length;i++){
+    let best=null;
+    let bestD=1e9;
+    let bestIdx=-1;
+
+    for(let j=0;j<pts.length;j++){
+      if(used.has(j)) continue;
+      const d=dist(cur,pts[j]);
+      if(d<bestD){ bestD=d; best=pts[j]; bestIdx=j; }
+    }
+
+    used.add(bestIdx);
+    ordered.push(best);
+    cur=best;
+  }
+
+  ordered.forEach((p,i)=>p.num=i+1);
+  points=ordered;
+}
+
+function draw(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  ctx.beginPath();
+  ctx.strokeStyle="red";
+  ctx.lineWidth=3;
+
+  for(let i=0;i<lines.length;i++){
+    const p=lines[i];
+    if(i===0) ctx.moveTo(p.x,p.y);
+    else ctx.lineTo(p.x,p.y);
+  }
+  ctx.stroke();
+
+  for(const p of points){
+    ctx.beginPath();
+    ctx.fillStyle = (p.num===1) ? "red" : "#000";
+    ctx.arc(p.x,p.y,9,0,Math.PI*2);
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.strokeStyle="#fff";
+    ctx.lineWidth=2;
+    ctx.arc(p.x,p.y,9,0,Math.PI*2);
+    ctx.stroke();
+
+    ctx.fillStyle="#fff";
+    ctx.font="bold 12px sans-serif";
+    ctx.textAlign="center";
+    ctx.textBaseline="middle";
+    ctx.fillText(p.num,p.x,p.y);
+  }
+}
+
+canvas.addEventListener('click',e=>{
+  const r=canvas.getBoundingClientRect();
+  const pos={x:e.clientX-r.left,y:e.clientY-r.top};
+
+  let nearest=null;
+  let min=20;
+
+  for(const p of points){
+    const d=dist(pos,p);
+    if(d<min){ min=d; nearest=p; }
+  }
+
+  if(!nearest) return;
+
+  if(nearest.num===current){
+    lines.push(nearest);
+    current++;
+    msg.innerText=`次は ${current}（${maxNum}まで） パターン${patternIndex+1}/30`;
+    draw();
+  }
+
+  if(current>maxNum){
+    hanamaru.style.display='flex';
+  }
+});
+
+window.addEventListener('resize',resize);
+resize();
+</script>
+
+</body>
+</html>
