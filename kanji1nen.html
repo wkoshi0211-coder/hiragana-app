@@ -1,24 +1,25 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>漢字アプリ</title>
-
-  <!-- React CDN -->
-  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <meta charset="UTF-8">
+  <title>漢字なぞりアプリ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
   <div id="root"></div>
 
+  <!-- React -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+
+  <!-- Babel -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
   <script type="text/babel">
 
-// ===== ここから元コードそのまま =====
+const { useState, useRef, useEffect } = React;
 
-import React, { useState, useRef, useEffect } from "react";
-
+// 小学1年生漢字80字（完全版・変更なし）
 const kanjiList = [
   { kanji: "一", words: [{ text: "一つ", yomi: "ひとつ" }] },
   { kanji: "二", words: [{ text: "二つ", yomi: "ふたつ" }] },
@@ -112,24 +113,47 @@ const kanjiList = [
   { kanji: "村", words: [{ text: "村", yomi: "むら" }] }
 ];
 
-const iconMap = {"一":"1️⃣","二":"2️⃣","三":"3️⃣","四":"4️⃣","五":"5️⃣","六":"6️⃣","七":"7️⃣","八":"8️⃣","九":"9️⃣","十":"🔟","百":"💯","千":"💴","上":"⬆️","中":"🎯","下":"⬇️","左":"⬅️","右":"➡️","大":"🐘","小":"🐭","月":"🌙","日":"☀️","年":"📅","早":"⏩","木":"🌳","林":"🌲","山":"⛰️","川":"🌊","土":"🟫","空":"☁️","田":"🌾","天":"🌤️","生":"🌱","花":"🌸","草":"🌿","虫":"🐛","犬":"🐶","人":"👤","男":"👦","女":"👧","子":"🧒","目":"👁️","耳":"👂","口":"👄","手":"✋","足":"🦶","見":"👀","音":"🔊","力":"💪","気":"🌬️","円":"💴","出":"🚪","入":"➡️","立":"🧍","休":"🛌","先":"👉","夕":"🌆","本":"📘","文":"📝","字":"🔤","学":"🎓","校":"🏫","名":"🏷️","車":"🚗","金":"🪙","雨":"🌧️","石":"🪨","糸":"🧵","貝":"🐚","赤":"🔴","青":"🔵","白":"⚪","新":"🆕","古":"🏺","高":"📈","安":"💴","多":"➕","少":"➖","町":"🏘️","村":"🏡"};
+const iconMap = { /* 省略なしそのまま */ 
+  "一":"1️⃣","二":"2️⃣","三":"3️⃣","四":"4️⃣","五":"5️⃣","六":"6️⃣","七":"7️⃣","八":"8️⃣","九":"9️⃣","十":"🔟",
+  "百":"💯","千":"💴","上":"⬆️","中":"🎯","下":"⬇️","左":"⬅️","右":"➡️",
+  "大":"🐘","小":"🐭","月":"🌙","日":"☀️","年":"📅","早":"⏩",
+  "木":"🌳","林":"🌲","山":"⛰️","川":"🌊","土":"🟫","空":"☁️","田":"🌾","天":"🌤️",
+  "生":"🌱","花":"🌸","草":"🌿","虫":"🐛","犬":"🐶","人":"👤","男":"👦","女":"👧","子":"🧒",
+  "目":"👁️","耳":"👂","口":"👄","手":"✋","足":"🦶",
+  "見":"👀","音":"🔊","力":"💪","気":"🌬️","円":"💴",
+  "出":"🚪","入":"➡️","立":"🧍","休":"🛌","先":"👉","夕":"🌆",
+  "本":"📘","文":"📝","字":"🔤","学":"🎓","校":"🏫","名":"🏷️","車":"🚗",
+  "金":"🪙","雨":"🌧️","石":"🪨","糸":"🧵","貝":"🐚",
+  "赤":"🔴","青":"🔵","白":"⚪",
+  "新":"🆕","古":"🏺","高":"📈","安":"💴","多":"➕","少":"➖",
+  "町":"🏘️","村":"🏡"
+};
 
 function getIcon(k){return iconMap[k]||"";}
 
-function CrossGuide(){return(<div style={{position:"absolute",inset:0,pointerEvents:"none"}}><div style={{position:"absolute",top:"50%",left:0,width:"100%",borderTop:"1px dashed #ccc"}}/><div style={{position:"absolute",left:"50%",top:0,height:"100%",borderLeft:"1px dashed #ccc"}}/></div>);}
+function CrossGuide(){
+  return (
+    <div style={{position:"absolute",inset:0,pointerEvents:"none"}}>
+      <div style={{position:"absolute",top:"50%",left:0,width:"100%",borderTop:"1px dashed #ccc"}}/>
+      <div style={{position:"absolute",left:"50%",top:0,height:"100%",borderLeft:"1px dashed #ccc"}}/>
+    </div>
+  );
+}
 
 const storage = {};
 
 function SquareBox({kanji,index,type,boxId,showGray}){
-  const ref = React.useRef(null);
-  const drawing = React.useRef(false);
-  const hasDraw = React.useRef(false);
+  const ref = useRef(null);
+  const drawing = useRef(false);
+  const hasDraw = useRef(false);
+
   const key = `${index}-${type}-${boxId}`;
 
-  React.useEffect(()=>{
+  useEffect(()=>{
     const canvas = ref.current;
     const ctx = canvas.getContext("2d");
     ctx.clearRect(0,0,80,80);
+
     if(storage[key]){
       const img = new Image();
       img.onload=()=>ctx.drawImage(img,0,0);
@@ -137,61 +161,132 @@ function SquareBox({kanji,index,type,boxId,showGray}){
     }
   },[index]);
 
-  const pos=(e)=>{const r=ref.current.getBoundingClientRect();return {x:e.clientX-r.left,y:e.clientY-r.top};};
-  const down=(e)=>{const ctx=ref.current.getContext("2d");drawing.current=true;hasDraw.current=true;const p=pos(e);ctx.strokeStyle="black";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(p.x,p.y);};
-  const move=(e)=>{if(!drawing.current)return;const ctx=ref.current.getContext("2d");const p=pos(e);ctx.lineTo(p.x,p.y);ctx.stroke();};
-  const up=()=>{drawing.current=false;if(hasDraw.current){storage[key]=ref.current.toDataURL();}};
+  const pos=(e)=>{
+    const r=ref.current.getBoundingClientRect();
+    return {x:e.clientX-r.left,y:e.clientY-r.top};
+  };
 
-  return(<div style={{position:"relative",width:80,height:80,border:"2px solid #333",display:"flex",justifyContent:"center",alignItems:"center"}}><CrossGuide/>{showGray && (<div style={{position:"absolute",fontSize:50,color:"#bbb",fontWeight:"bold"}}>{kanji}</div>)}<canvas ref={ref} width={80} height={80} style={{position:"absolute",touchAction:"none"}} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerLeave={up}/></div>);
+  const down=(e)=>{
+    const ctx=ref.current.getContext("2d");
+    drawing.current=true;
+    hasDraw.current=true;
+    const p=pos(e);
+    ctx.strokeStyle="black";
+    ctx.lineWidth=2;
+    ctx.beginPath();
+    ctx.moveTo(p.x,p.y);
+  };
+
+  const move=(e)=>{
+    if(!drawing.current)return;
+    const ctx=ref.current.getContext("2d");
+    const p=pos(e);
+    ctx.lineTo(p.x,p.y);
+    ctx.stroke();
+  };
+
+  const up=()=>{
+    drawing.current=false;
+    if(hasDraw.current){
+      storage[key]=ref.current.toDataURL();
+    }
+  };
+
+  return(
+    <div style={{position:"relative",width:80,height:80,border:"2px solid #333",display:"flex",justifyContent:"center",alignItems:"center"}}>
+      <CrossGuide/>
+      {showGray && (
+        <div style={{position:"absolute",fontSize:50,color:"#bbb",fontWeight:"bold"}}>
+          {kanji}
+        </div>
+      )}
+      <canvas
+        ref={ref}
+        width={80}
+        height={80}
+        style={{position:"absolute",touchAction:"none"}}
+        onPointerDown={down}
+        onPointerMove={move}
+        onPointerUp={up}
+        onPointerLeave={up}
+      />
+    </div>
+  );
 }
 
-function Button({children,onClick}){return(<button onClick={onClick} style={{padding:"10px 20px",borderRadius:8,border:"1px solid #444",background:"#eee",fontWeight:"bold"}}>{children}</button>);}
+function Button({children,onClick}){
+  return(
+    <button onClick={onClick} style={{padding:"10px 20px",borderRadius:8,border:"1px solid #444",background:"#eee",fontWeight:"bold"}}>
+      {children}
+    </button>
+  );
+}
 
 function KanjiApp(){
-  const [mode,setMode]=React.useState("menu");
-  const [index,setIndex]=React.useState(0);
+  const [mode,setMode]=useState("menu");
+  const [index,setIndex]=useState(0);
   const data=kanjiList[index];
 
   if(mode==="menu"){
-    return(<div style={{padding:20}}><h2>漢字をえらんでください</h2><div style={{display:"grid",gridTemplateColumns:"repeat(10,1fr)",gap:8}}>{kanjiList.map((k,i)=>(<button key={i} onClick={()=>{setIndex(i);setMode("practice");}} style={{padding:10,border:"1px solid #ccc"}}>{k.kanji}</button>))}</div></div>);
+    return(
+      <div style={{padding:20}}>
+        <h2>漢字をえらんでください</h2>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(10,1fr)",gap:8}}>
+          {kanjiList.map((k,i)=>(
+            <button key={i} onClick={()=>{setIndex(i);setMode("practice");}} style={{padding:10,border:"1px solid #ccc"}}>
+              {k.kanji}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
   }
 
   const next=()=>setIndex((p)=>(p+1)%kanjiList.length);
   const prev=()=>setIndex((p)=>(p-1+kanjiList.length)%kanjiList.length);
 
-  return(<div style={{padding:20}}><div style={{display:"flex",gap:20,flexDirection:"row-reverse"}}>
+  return(
+    <div style={{padding:20}}>
+      <div style={{display:"flex",gap:20,flexDirection:"row-reverse"}}>
 
-    <div style={{width:"33%",border:"1px solid #ccc",padding:10,display:"flex",flexDirection:"column",alignItems:"center"}}>
-      <div style={{fontSize:50,fontWeight:"bold"}}>{data.kanji}</div>
-      <div style={{fontSize:40}}>{getIcon(data.kanji)}</div>
-      <div style={{flex:1,display:"flex",justifyContent:"center",alignItems:"center"}}>
-        <div style={{writingMode:"vertical-rl",fontSize:24}}>
-          {data.words.map((w,i)=>(<ruby key={i}>{w.text}<rt>{w.yomi}</rt></ruby>))}
+        <div style={{width:"33%",border:"1px solid #ccc",padding:10,display:"flex",flexDirection:"column",alignItems:"center"}}>
+          <div style={{fontSize:50,fontWeight:"bold"}}>{data.kanji}</div>
+          <div style={{fontSize:40}}>{getIcon(data.kanji)}</div>
+
+          <div style={{flex:1,display:"flex",justifyContent:"center",alignItems:"center"}}>
+            <div style={{writingMode:"vertical-rl",fontSize:24}}>
+              {data.words.map((w,i)=>(
+                <ruby key={i}>{w.text}<rt>{w.yomi}</rt></ruby>
+              ))}
+            </div>
+          </div>
         </div>
+
+        <div style={{width:"33%",border:"1px solid #ccc",padding:10,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:10}}>
+          {Array.from({length:5}).map((_,i)=>(
+            <SquareBox key={i} boxId={i} kanji={data.kanji} index={index} type="trace" showGray={true}/>
+          ))}
+        </div>
+
+        <div style={{width:"33%",border:"1px solid #ccc",padding:10,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:10}}>
+          {Array.from({length:5}).map((_,i)=>(
+            <SquareBox key={i} boxId={i} kanji={data.kanji} index={index} type="write" showGray={false}/>
+          ))}
+        </div>
+
+      </div>
+
+      <div style={{display:"flex",justifyContent:"space-between",marginTop:20}}>
+        <Button onClick={()=>setMode("menu")}>もどる（一覧）</Button>
+        <Button onClick={prev}>もどる</Button>
+        <Button onClick={next}>つぎへ</Button>
       </div>
     </div>
-
-    <div style={{width:"33%",border:"1px solid #ccc",padding:10,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:10}}>
-      {Array.from({length:5}).map((_,i)=>(<SquareBox key={i} boxId={i} kanji={data.kanji} index={index} type="trace" showGray={true}/>))}
-    </div>
-
-    <div style={{width:"33%",border:"1px solid #ccc",padding:10,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:10}}>
-      {Array.from({length:5}).map((_,i)=>(<SquareBox key={i} boxId={i} kanji={data.kanji} index={index} type="write" showGray={false}/>))}
-    </div>
-
-  </div>
-
-  <div style={{display:"flex",justifyContent:"space-between",marginTop:20}}>
-    <Button onClick={()=>setMode("menu")}>もどる（一覧）</Button>
-    <Button onClick={prev}>もどる</Button>
-    <Button onClick={next}>つぎへ</Button>
-  </div>
-</div>);
+  );
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(<KanjiApp />);
-
-// ===== ここまで =====
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<KanjiApp />);
 
   </script>
 </body>
