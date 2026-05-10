@@ -1,124 +1,198 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<title>漢字なぞりアプリ</title>
-<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-<style>
-body { margin:0; font-family:sans-serif; }
-button { cursor:pointer; }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>漢字アプリ</title>
+
+  <!-- React CDN -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
-
 <body>
-<div id="root"></div>
+  <div id="root"></div>
 
-<script type="text/babel">
+  <script type="text/babel">
 
-const { useState, useRef, useEffect } = React;
+// ===== ここから元コードそのまま =====
 
-// ===== データ（そのまま） =====
+import React, { useState, useRef, useEffect } from "react";
+
 const kanjiList = [
-{ kanji:"一", words:[{text:"一つ",yomi:"ひとつ"}]},
-{ kanji:"二", words:[{text:"二つ",yomi:"ふたつ"}]},
-{ kanji:"三", words:[{text:"三つ",yomi:"みっつ"}]},
-{ kanji:"四", words:[{text:"四つ",yomi:"よっつ"}]},
-{ kanji:"五", words:[{text:"五つ",yomi:"いつつ"}]},
-{ kanji:"六", words:[{text:"六つ",yomi:"むっつ"}]},
-{ kanji:"七", words:[{text:"七つ",yomi:"ななつ"}]},
-{ kanji:"八", words:[{text:"八つ",yomi:"やっつ"}]},
-{ kanji:"九", words:[{text:"九つ",yomi:"ここのつ"}]},
-{ kanji:"十", words:[{text:"十日",yomi:"とおか"}]},
-{ kanji:"百", words:[{text:"百",yomi:"ひゃく"}]},
-{ kanji:"千", words:[{text:"千",yomi:"せん"}]},
-{ kanji:"上", words:[{text:"上",yomi:"うえ"}]},
-{ kanji:"中", words:[{text:"中",yomi:"なか"}]},
-{ kanji:"下", words:[{text:"下",yomi:"した"}]},
-{ kanji:"左", words:[{text:"左",yomi:"ひだり"}]},
-{ kanji:"右", words:[{text:"右",yomi:"みぎ"}]},
-{ kanji:"大", words:[{text:"大きい",yomi:"おおきい"}]},
-{ kanji:"小", words:[{text:"小さい",yomi:"ちいさい"}]},
-{ kanji:"月", words:[{text:"月",yomi:"つき"}]},
-{ kanji:"日", words:[{text:"日",yomi:"ひ"}]},
-{ kanji:"年", words:[{text:"年",yomi:"とし"}]},
-{ kanji:"早", words:[{text:"早い",yomi:"はやい"}]},
-{ kanji:"木", words:[{text:"木",yomi:"き"}]},
-{ kanji:"林", words:[{text:"林",yomi:"はやし"}]},
-{ kanji:"山", words:[{text:"山",yomi:"やま"}]},
-{ kanji:"川", words:[{text:"川",yomi:"かわ"}]},
-{ kanji:"土", words:[{text:"土",yomi:"つち"}]},
-{ kanji:"空", words:[{text:"空",yomi:"そら"}]},
-{ kanji:"田", words:[{text:"田",yomi:"た"}]},
-{ kanji:"天", words:[{text:"天",yomi:"てん"}]},
-{ kanji:"生", words:[{text:"生きる",yomi:"いきる"}]},
-{ kanji:"花", words:[{text:"花",yomi:"はな"}]},
-{ kanji:"草", words:[{text:"草",yomi:"くさ"}]},
-{ kanji:"虫", words:[{text:"虫",yomi:"むし"}]},
-{ kanji:"犬", words:[{text:"犬",yomi:"いぬ"}]},
-{ kanji:"人", words:[{text:"人",yomi:"ひと"}]},
-{ kanji:"男", words:[{text:"男",yomi:"おとこ"}]},
-{ kanji:"女", words:[{text:"女",yomi:"おんな"}]},
-{ kanji:"子", words:[{text:"子",yomi:"こ"}]},
-{ kanji:"目", words:[{text:"目",yomi:"め"}]},
-{ kanji:"耳", words:[{text:"耳",yomi:"みみ"}]},
-{ kanji:"口", words:[{text:"口",yomi:"くち"}]},
-{ kanji:"手", words:[{text:"手",yomi:"て"}]},
-{ kanji:"足", words:[{text:"足",yomi:"あし"}]},
-{ kanji:"見", words:[{text:"見る",yomi:"みる"}]},
-{ kanji:"音", words:[{text:"音",yomi:"おと"}]},
-{ kanji:"力", words:[{text:"力",yomi:"ちから"}]},
-{ kanji:"気", words:[{text:"気",yomi:"き"}]},
-{ kanji:"円", words:[{text:"円",yomi:"えん"}]},
-{ kanji:"出", words:[{text:"出る",yomi:"でる"}]},
-{ kanji:"入", words:[{text:"入る",yomi:"はいる"}]},
-{ kanji:"立", words:[{text:"立つ",yomi:"たつ"}]},
-{ kanji:"休", words:[{text:"休む",yomi:"やすむ"}]},
-{ kanji:"先", words:[{text:"先",yomi:"さき"}]},
-{ kanji:"夕", words:[{text:"夕",yomi:"ゆう"}]},
-{ kanji:"本", words:[{text:"本",yomi:"ほん"}]},
-{ kanji:"文", words:[{text:"文",yomi:"ぶん"}]},
-{ kanji:"字", words:[{text:"字",yomi:"じ"}]},
-{ kanji:"学", words:[{text:"学校",yomi:"がっこう"}]},
-{ kanji:"校", words:[{text:"学校",yomi:"がっこう"}]},
-{ kanji:"名", words:[{text:"名前",yomi:"なまえ"}]},
-{ kanji:"車", words:[{text:"車",yomi:"くるま"}]},
-{ kanji:"金", words:[{text:"金",yomi:"きん"}]},
-{ kanji:"雨", words:[{text:"雨",yomi:"あめ"}]},
-{ kanji:"石", words:[{text:"石",yomi:"いし"}]},
-{ kanji:"糸", words:[{text:"糸",yomi:"いと"}]},
-{ kanji:"貝", words:[{text:"貝",yomi:"かい"}]},
-{ kanji:"赤", words:[{text:"赤",yomi:"あか"}]},
-{ kanji:"青", words:[{text:"青",yomi:"あお"}]},
-{ kanji:"白", words:[{text:"白",yomi:"しろ"}]},
-{ kanji:"新", words:[{text:"新しい",yomi:"あたらしい"}]},
-{ kanji:"古", words:[{text:"古い",yomi:"ふるい"}]},
-{ kanji:"高", words:[{text:"高い",yomi:"たかい"}]},
-{ kanji:"安", words:[{text:"安い",yomi:"やすい"}]},
-{ kanji:"多", words:[{text:"多い",yomi:"おおい"}]},
-{ kanji:"少", words:[{text:"少ない",yomi:"すくない"}]},
-{ kanji:"町", words:[{text:"町",yomi:"まち"}]},
-{ kanji:"村", words:[{text:"村",yomi:"むら"}]}
+  { kanji: "一", words: [{ text: "一つ", yomi: "ひとつ" }] },
+  { kanji: "二", words: [{ text: "二つ", yomi: "ふたつ" }] },
+  { kanji: "三", words: [{ text: "三つ", yomi: "みっつ" }] },
+  { kanji: "四", words: [{ text: "四つ", yomi: "よっつ" }] },
+  { kanji: "五", words: [{ text: "五つ", yomi: "いつつ" }] },
+  { kanji: "六", words: [{ text: "六つ", yomi: "むっつ" }] },
+  { kanji: "七", words: [{ text: "七つ", yomi: "ななつ" }] },
+  { kanji: "八", words: [{ text: "八つ", yomi: "やっつ" }] },
+  { kanji: "九", words: [{ text: "九つ", yomi: "ここのつ" }] },
+  { kanji: "十", words: [{ text: "十日", yomi: "とおか" }] },
+  { kanji: "百", words: [{ text: "百", yomi: "ひゃく" }] },
+  { kanji: "千", words: [{ text: "千", yomi: "せん" }] },
+
+  { kanji: "上", words: [{ text: "上", yomi: "うえ" }] },
+  { kanji: "中", words: [{ text: "中", yomi: "なか" }] },
+  { kanji: "下", words: [{ text: "下", yomi: "した" }] },
+  { kanji: "左", words: [{ text: "左", yomi: "ひだり" }] },
+  { kanji: "右", words: [{ text: "右", yomi: "みぎ" }] },
+  { kanji: "大", words: [{ text: "大きい", yomi: "おおきい" }] },
+  { kanji: "小", words: [{ text: "小さい", yomi: "ちいさい" }] },
+
+  { kanji: "月", words: [{ text: "月", yomi: "つき" }] },
+  { kanji: "日", words: [{ text: "日", yomi: "ひ" }] },
+  { kanji: "年", words: [{ text: "年", yomi: "とし" }] },
+  { kanji: "早", words: [{ text: "早い", yomi: "はやい" }] },
+
+  { kanji: "木", words: [{ text: "木", yomi: "き" }] },
+  { kanji: "林", words: [{ text: "林", yomi: "はやし" }] },
+  { kanji: "山", words: [{ text: "山", yomi: "やま" }] },
+  { kanji: "川", words: [{ text: "川", yomi: "かわ" }] },
+  { kanji: "土", words: [{ text: "土", yomi: "つち" }] },
+  { kanji: "空", words: [{ text: "空", yomi: "そら" }] },
+  { kanji: "田", words: [{ text: "田", yomi: "た" }] },
+  { kanji: "天", words: [{ text: "天", yomi: "てん" }] },
+
+  { kanji: "生", words: [{ text: "生きる", yomi: "いきる" }] },
+  { kanji: "花", words: [{ text: "花", yomi: "はな" }] },
+  { kanji: "草", words: [{ text: "草", yomi: "くさ" }] },
+  { kanji: "虫", words: [{ text: "虫", yomi: "むし" }] },
+  { kanji: "犬", words: [{ text: "犬", yomi: "いぬ" }] },
+  { kanji: "人", words: [{ text: "人", yomi: "ひと" }] },
+  { kanji: "男", words: [{ text: "男", yomi: "おとこ" }] },
+  { kanji: "女", words: [{ text: "女", yomi: "おんな" }] },
+  { kanji: "子", words: [{ text: "子", yomi: "こ" }] },
+
+  { kanji: "目", words: [{ text: "目", yomi: "め" }] },
+  { kanji: "耳", words: [{ text: "耳", yomi: "みみ" }] },
+  { kanji: "口", words: [{ text: "口", yomi: "くち" }] },
+  { kanji: "手", words: [{ text: "手", yomi: "て" }] },
+  { kanji: "足", words: [{ text: "足", yomi: "あし" }] },
+
+  { kanji: "見", words: [{ text: "見る", yomi: "みる" }] },
+  { kanji: "音", words: [{ text: "音", yomi: "おと" }] },
+  { kanji: "力", words: [{ text: "力", yomi: "ちから" }] },
+  { kanji: "気", words: [{ text: "気", yomi: "き" }] },
+  { kanji: "円", words: [{ text: "円", yomi: "えん" }] },
+  { kanji: "出", words: [{ text: "出る", yomi: "でる" }] },
+  { kanji: "入", words: [{ text: "入る", yomi: "はいる" }] },
+  { kanji: "立", words: [{ text: "立つ", yomi: "たつ" }] },
+  { kanji: "休", words: [{ text: "休む", yomi: "やすむ" }] },
+  { kanji: "先", words: [{ text: "先", yomi: "さき" }] },
+  { kanji: "夕", words: [{ text: "夕", yomi: "ゆう" }] },
+
+  { kanji: "本", words: [{ text: "本", yomi: "ほん" }] },
+  { kanji: "文", words: [{ text: "文", yomi: "ぶん" }] },
+  { kanji: "字", words: [{ text: "字", yomi: "じ" }] },
+  { kanji: "学", words: [{ text: "学校", yomi: "がっこう" }] },
+  { kanji: "校", words: [{ text: "学校", yomi: "がっこう" }] },
+  { kanji: "名", words: [{ text: "名前", yomi: "なまえ" }] },
+  { kanji: "車", words: [{ text: "車", yomi: "くるま" }] },
+
+  { kanji: "金", words: [{ text: "金", yomi: "きん" }] },
+  { kanji: "雨", words: [{ text: "雨", yomi: "あめ" }] },
+  { kanji: "石", words: [{ text: "石", yomi: "いし" }] },
+  { kanji: "糸", words: [{ text: "糸", yomi: "いと" }] },
+  { kanji: "貝", words: [{ text: "貝", yomi: "かい" }] },
+
+  { kanji: "赤", words: [{ text: "赤", yomi: "あか" }] },
+  { kanji: "青", words: [{ text: "青", yomi: "あお" }] },
+  { kanji: "白", words: [{ text: "白", yomi: "しろ" }] },
+
+  { kanji: "新", words: [{ text: "新しい", yomi: "あたらしい" }] },
+  { kanji: "古", words: [{ text: "古い", yomi: "ふるい" }] },
+  { kanji: "高", words: [{ text: "高い", yomi: "たかい" }] },
+  { kanji: "安", words: [{ text: "安い", yomi: "やすい" }] },
+  { kanji: "多", words: [{ text: "多い", yomi: "おおい" }] },
+  { kanji: "少", words: [{ text: "少ない", yomi: "すくない" }] },
+
+  { kanji: "町", words: [{ text: "町", yomi: "まち" }] },
+  { kanji: "村", words: [{ text: "村", yomi: "むら" }] }
 ];
 
-// ===== アイコン =====
-const iconMap = { "一":"1️⃣","二":"2️⃣","三":"3️⃣","四":"4️⃣","五":"5️⃣","六":"6️⃣","七":"7️⃣","八":"8️⃣","九":"9️⃣","十":"🔟","百":"💯","千":"💴","上":"⬆️","中":"🎯","下":"⬇️","左":"⬅️","右":"➡️","大":"🐘","小":"🐭","月":"🌙","日":"☀️","年":"📅","早":"⏩","木":"🌳","林":"🌲","山":"⛰️","川":"🌊","土":"🟫","空":"☁️","田":"🌾","天":"🌤️","生":"🌱","花":"🌸","草":"🌿","虫":"🐛","犬":"🐶","人":"👤","男":"👦","女":"👧","子":"🧒","目":"👁️","耳":"👂","口":"👄","手":"✋","足":"🦶","見":"👀","音":"🔊","力":"💪","気":"🌬️","円":"💴","出":"🚪","入":"➡️","立":"🧍","休":"🛌","先":"👉","夕":"🌆","本":"📘","文":"📝","字":"🔤","学":"🎓","校":"🏫","名":"🏷️","車":"🚗","金":"🪙","雨":"🌧️","石":"🪨","糸":"🧵","貝":"🐚","赤":"🔴","青":"🔵","白":"⚪","新":"🆕","古":"🏺","高":"📈","安":"💴","多":"➕","少":"➖","町":"🏘️","村":"🏡" };
+const iconMap = {"一":"1️⃣","二":"2️⃣","三":"3️⃣","四":"4️⃣","五":"5️⃣","六":"6️⃣","七":"7️⃣","八":"8️⃣","九":"9️⃣","十":"🔟","百":"💯","千":"💴","上":"⬆️","中":"🎯","下":"⬇️","左":"⬅️","右":"➡️","大":"🐘","小":"🐭","月":"🌙","日":"☀️","年":"📅","早":"⏩","木":"🌳","林":"🌲","山":"⛰️","川":"🌊","土":"🟫","空":"☁️","田":"🌾","天":"🌤️","生":"🌱","花":"🌸","草":"🌿","虫":"🐛","犬":"🐶","人":"👤","男":"👦","女":"👧","子":"🧒","目":"👁️","耳":"👂","口":"👄","手":"✋","足":"🦶","見":"👀","音":"🔊","力":"💪","気":"🌬️","円":"💴","出":"🚪","入":"➡️","立":"🧍","休":"🛌","先":"👉","夕":"🌆","本":"📘","文":"📝","字":"🔤","学":"🎓","校":"🏫","名":"🏷️","車":"🚗","金":"🪙","雨":"🌧️","石":"🪨","糸":"🧵","貝":"🐚","赤":"🔴","青":"🔵","白":"⚪","新":"🆕","古":"🏺","高":"📈","安":"💴","多":"➕","少":"➖","町":"🏘️","村":"🏡"};
 
-function App(){
-  const [i,setI]=useState(0);
-  const d=kanjiList[i];
-  return (
-    <div style={{padding:20}}>
-      <h1>{d.kanji} {iconMap[d.kanji]}</h1>
-      <p>{d.words[0].yomi} / {d.words[0].text}</p>
-      <button onClick={()=>setI((i+1)%kanjiList.length)}>つぎ</button>
-    </div>
-  );
+function getIcon(k){return iconMap[k]||"";}
+
+function CrossGuide(){return(<div style={{position:"absolute",inset:0,pointerEvents:"none"}}><div style={{position:"absolute",top:"50%",left:0,width:"100%",borderTop:"1px dashed #ccc"}}/><div style={{position:"absolute",left:"50%",top:0,height:"100%",borderLeft:"1px dashed #ccc"}}/></div>);}
+
+const storage = {};
+
+function SquareBox({kanji,index,type,boxId,showGray}){
+  const ref = React.useRef(null);
+  const drawing = React.useRef(false);
+  const hasDraw = React.useRef(false);
+  const key = `${index}-${type}-${boxId}`;
+
+  React.useEffect(()=>{
+    const canvas = ref.current;
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0,0,80,80);
+    if(storage[key]){
+      const img = new Image();
+      img.onload=()=>ctx.drawImage(img,0,0);
+      img.src = storage[key];
+    }
+  },[index]);
+
+  const pos=(e)=>{const r=ref.current.getBoundingClientRect();return {x:e.clientX-r.left,y:e.clientY-r.top};};
+  const down=(e)=>{const ctx=ref.current.getContext("2d");drawing.current=true;hasDraw.current=true;const p=pos(e);ctx.strokeStyle="black";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(p.x,p.y);};
+  const move=(e)=>{if(!drawing.current)return;const ctx=ref.current.getContext("2d");const p=pos(e);ctx.lineTo(p.x,p.y);ctx.stroke();};
+  const up=()=>{drawing.current=false;if(hasDraw.current){storage[key]=ref.current.toDataURL();}};
+
+  return(<div style={{position:"relative",width:80,height:80,border:"2px solid #333",display:"flex",justifyContent:"center",alignItems:"center"}}><CrossGuide/>{showGray && (<div style={{position:"absolute",fontSize:50,color:"#bbb",fontWeight:"bold"}}>{kanji}</div>)}<canvas ref={ref} width={80} height={80} style={{position:"absolute",touchAction:"none"}} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerLeave={up}/></div>);
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+function Button({children,onClick}){return(<button onClick={onClick} style={{padding:"10px 20px",borderRadius:8,border:"1px solid #444",background:"#eee",fontWeight:"bold"}}>{children}</button>);}
 
-</script>
+function KanjiApp(){
+  const [mode,setMode]=React.useState("menu");
+  const [index,setIndex]=React.useState(0);
+  const data=kanjiList[index];
+
+  if(mode==="menu"){
+    return(<div style={{padding:20}}><h2>漢字をえらんでください</h2><div style={{display:"grid",gridTemplateColumns:"repeat(10,1fr)",gap:8}}>{kanjiList.map((k,i)=>(<button key={i} onClick={()=>{setIndex(i);setMode("practice");}} style={{padding:10,border:"1px solid #ccc"}}>{k.kanji}</button>))}</div></div>);
+  }
+
+  const next=()=>setIndex((p)=>(p+1)%kanjiList.length);
+  const prev=()=>setIndex((p)=>(p-1+kanjiList.length)%kanjiList.length);
+
+  return(<div style={{padding:20}}><div style={{display:"flex",gap:20,flexDirection:"row-reverse"}}>
+
+    <div style={{width:"33%",border:"1px solid #ccc",padding:10,display:"flex",flexDirection:"column",alignItems:"center"}}>
+      <div style={{fontSize:50,fontWeight:"bold"}}>{data.kanji}</div>
+      <div style={{fontSize:40}}>{getIcon(data.kanji)}</div>
+      <div style={{flex:1,display:"flex",justifyContent:"center",alignItems:"center"}}>
+        <div style={{writingMode:"vertical-rl",fontSize:24}}>
+          {data.words.map((w,i)=>(<ruby key={i}>{w.text}<rt>{w.yomi}</rt></ruby>))}
+        </div>
+      </div>
+    </div>
+
+    <div style={{width:"33%",border:"1px solid #ccc",padding:10,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:10}}>
+      {Array.from({length:5}).map((_,i)=>(<SquareBox key={i} boxId={i} kanji={data.kanji} index={index} type="trace" showGray={true}/>))}
+    </div>
+
+    <div style={{width:"33%",border:"1px solid #ccc",padding:10,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:10}}>
+      {Array.from({length:5}).map((_,i)=>(<SquareBox key={i} boxId={i} kanji={data.kanji} index={index} type="write" showGray={false}/>))}
+    </div>
+
+  </div>
+
+  <div style={{display:"flex",justifyContent:"space-between",marginTop:20}}>
+    <Button onClick={()=>setMode("menu")}>もどる（一覧）</Button>
+    <Button onClick={prev}>もどる</Button>
+    <Button onClick={next}>つぎへ</Button>
+  </div>
+</div>);
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<KanjiApp />);
+
+// ===== ここまで =====
+
+  </script>
 </body>
 </html>
