@@ -1,289 +1,481 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>漢字なぞりアプリ</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>小学1年生 漢字練習</title>
 
-  <!-- iPad事故防止CSS -->
-  <style>
-    body {
-      margin: 0;
-      overscroll-behavior: none;
-      touch-action: none;
-      user-select: none;
-      -webkit-user-select: none;
-    }
+<style>
 
-    canvas {
-      touch-action: none;
-      -webkit-user-select: none;
-      -webkit-touch-callout: none;
-    }
-  </style>
+body{
+    margin:0;
+    font-family:sans-serif;
+    background:#f5f5f5;
+    touch-action:none;
+}
+
+.topbar{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    padding:10px;
+    background:white;
+    border-bottom:1px solid #ccc;
+    position:sticky;
+    top:0;
+    z-index:100;
+}
+
+button{
+    font-size:18px;
+    padding:10px 16px;
+    border:none;
+    border-radius:10px;
+    background:#1976d2;
+    color:white;
+}
+
+.screen{
+    padding:10px;
+}
+
+.hidden{
+    display:none;
+}
+
+.title{
+    text-align:center;
+    font-size:32px;
+    margin:20px 0;
+}
+
+.kanji-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(60px,1fr));
+    gap:10px;
+    max-width:900px;
+    margin:auto;
+}
+
+.kanji-btn{
+    height:60px;
+    font-size:32px;
+    background:white;
+    border:2px solid #4aa3df;
+    border-radius:12px;
+    color:black;
+}
+
+.sheet{
+    background:white;
+    border-radius:20px;
+    padding:20px;
+    max-width:900px;
+    margin:auto;
+}
+
+.row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:20px;
+}
+
+.model{
+    width:180px;
+    text-align:center;
+}
+
+.big-kanji{
+    font-size:120px;
+    color:#cccccc;
+    border:2px solid #4aa3df;
+    height:180px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+.reading{
+    font-size:28px;
+    margin-top:10px;
+}
+
+.practice-area{
+    flex:1;
+    min-width:300px;
+}
+
+.canvas-wrap{
+    position:relative;
+    width:100%;
+    aspect-ratio:1/1;
+    border:2px solid #4aa3df;
+    background:white;
+}
+
+canvas{
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    touch-action:none;
+}
+
+.message{
+    text-align:center;
+    font-size:28px;
+    color:red;
+    margin-top:10px;
+}
+
+</style>
 </head>
 
 <body>
-<div id="root"></div>
 
-<!-- React -->
-<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<div id="listScreen" class="screen">
 
-<!-- Babel -->
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <div class="title">
+        小学1年生の漢字80字
+    </div>
 
-<script type="text/babel">
+    <div class="kanji-grid" id="kanjiGrid"></div>
 
-const { useState, useRef, useEffect } = React;
+</div>
 
-/* ★ 80字そのまま（省略なし） */
+<div id="practiceScreen" class="screen hidden">
+
+    <div class="topbar">
+
+        <button id="backBtn">一覧へ</button>
+        <button id="penBtn">黒ペン</button>
+        <button id="eraserBtn">消しゴム</button>
+        <button id="doneBtn">できました</button>
+        <button id="clearBtn">全部消す</button>
+
+    </div>
+
+    <div class="sheet">
+
+        <div class="title" id="titleKanji">
+            石
+        </div>
+
+        <div class="row">
+
+            <div class="model">
+
+                <div class="big-kanji" id="modelKanji">
+                    石
+                </div>
+
+                <div class="reading" id="reading">
+                    いし
+                </div>
+
+            </div>
+
+            <div class="practice-area">
+
+                <div class="canvas-wrap">
+
+                    <canvas id="gridCanvas"></canvas>
+                    <canvas id="drawCanvas"></canvas>
+
+                </div>
+
+                <div class="message" id="message"></div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
 const kanjiList = [
-  { kanji: "一", words: [{ text: "一つ", yomi: "ひとつ" }] },
-  { kanji: "二", words: [{ text: "二つ", yomi: "ふたつ" }] },
-  { kanji: "三", words: [{ text: "三つ", yomi: "みっつ" }] },
-  { kanji: "四", words: [{ text: "四つ", yomi: "よっつ" }] },
-  { kanji: "五", words: [{ text: "五つ", yomi: "いつつ" }] },
-  { kanji: "六", words: [{ text: "六つ", yomi: "むっつ" }] },
-  { kanji: "七", words: [{ text: "七つ", yomi: "ななつ" }] },
-  { kanji: "八", words: [{ text: "八つ", yomi: "やっつ" }] },
-  { kanji: "九", words: [{ text: "九つ", yomi: "ここのつ" }] },
-  { kanji: "十", words: [{ text: "十日", yomi: "とおか" }] },
-  { kanji: "百", words: [{ text: "百", yomi: "ひゃく" }] },
-  { kanji: "千", words: [{ text: "千", yomi: "せん" }] },
-
-  { kanji: "上", words: [{ text: "上", yomi: "うえ" }] },
-  { kanji: "中", words: [{ text: "中", yomi: "なか" }] },
-  { kanji: "下", words: [{ text: "下", yomi: "した" }] },
-  { kanji: "左", words: [{ text: "左", yomi: "ひだり" }] },
-  { kanji: "右", words: [{ text: "右", yomi: "みぎ" }] },
-  { kanji: "大", words: [{ text: "大きい", yomi: "おおきい" }] },
-  { kanji: "小", words: [{ text: "小さい", yomi: "ちいさい" }] },
-
-  { kanji: "月", words: [{ text: "月", yomi: "つき" }] },
-  { kanji: "日", words: [{ text: "日", yomi: "ひ" }] },
-  { kanji: "年", words: [{ text: "年", yomi: "とし" }] },
-  { kanji: "早", words: [{ text: "早い", yomi: "はやい" }] },
-
-  { kanji: "木", words: [{ text: "木", yomi: "き" }] },
-  { kanji: "林", words: [{ text: "林", yomi: "はやし" }] },
-  { kanji: "山", words: [{ text: "山", yomi: "やま" }] },
-  { kanji: "川", words: [{ text: "川", yomi: "かわ" }] },
-  { kanji: "土", words: [{ text: "土", yomi: "つち" }] },
-  { kanji: "空", words: [{ text: "空", yomi: "そら" }] },
-  { kanji: "田", words: [{ text: "田", yomi: "た" }] },
-  { kanji: "天", words: [{ text: "天", yomi: "てん" }] },
-
-  { kanji: "生", words: [{ text: "生きる", yomi: "いきる" }] },
-  { kanji: "花", words: [{ text: "花", yomi: "はな" }] },
-  { kanji: "草", words: [{ text: "草", yomi: "くさ" }] },
-  { kanji: "虫", words: [{ text: "虫", yomi: "むし" }] },
-  { kanji: "犬", words: [{ text: "犬", yomi: "いぬ" }] },
-  { kanji: "人", words: [{ text: "人", yomi: "ひと" }] },
-  { kanji: "男", words: [{ text: "男", yomi: "おとこ" }] },
-  { kanji: "女", words: [{ text: "女", yomi: "おんな" }] },
-  { kanji: "子", words: [{ text: "子", yomi: "こ" }] },
-
-  { kanji: "目", words: [{ text: "目", yomi: "め" }] },
-  { kanji: "耳", words: [{ text: "耳", yomi: "みみ" }] },
-  { kanji: "口", words: [{ text: "口", yomi: "くち" }] },
-  { kanji: "手", words: [{ text: "手", yomi: "て" }] },
-  { kanji: "足", words: [{ text: "足", yomi: "あし" }] },
-
-  { kanji: "見", words: [{ text: "見る", yomi: "みる" }] },
-  { kanji: "音", words: [{ text: "音", yomi: "おと" }] },
-  { kanji: "力", words: [{ text: "力", yomi: "ちから" }] },
-  { kanji: "気", words: [{ text: "気", yomi: "き" }] },
-  { kanji: "円", words: [{ text: "円", yomi: "えん" }] },
-  { kanji: "出", words: [{ text: "出る", yomi: "でる" }] },
-  { kanji: "入", words: [{ text: "入る", yomi: "はいる" }] },
-  { kanji: "立", words: [{ text: "立つ", yomi: "たつ" }] },
-  { kanji: "休", words: [{ text: "休む", yomi: "やすむ" }] },
-  { kanji: "先", words: [{ text: "先", yomi: "さき" }] },
-  { kanji: "夕", words: [{ text: "夕", yomi: "ゆう" }] },
-
-  { kanji: "本", words: [{ text: "本", yomi: "ほん" }] },
-  { kanji: "文", words: [{ text: "文", yomi: "ぶん" }] },
-  { kanji: "字", words: [{ text: "字", yomi: "じ" }] },
-  { kanji: "学", words: [{ text: "学校", yomi: "がっこう" }] },
-  { kanji: "校", words: [{ text: "学校", yomi: "がっこう" }] },
-  { kanji: "名", words: [{ text: "名前", yomi: "なまえ" }] },
-  { kanji: "車", words: [{ text: "車", yomi: "くるま" }] },
-
-  { kanji: "金", words: [{ text: "金", yomi: "きん" }] },
-  { kanji: "雨", words: [{ text: "雨", yomi: "あめ" }] },
-  { kanji: "石", words: [{ text: "石", yomi: "いし" }] },
-  { kanji: "糸", words: [{ text: "糸", yomi: "いと" }] },
-  { kanji: "貝", words: [{ text: "貝", yomi: "かい" }] },
-
-  { kanji: "赤", words: [{ text: "赤", yomi: "あか" }] },
-  { kanji: "青", words: [{ text: "青", yomi: "あお" }] },
-  { kanji: "白", words: [{ text: "白", yomi: "しろ" }] },
-
-  { kanji: "新", words: [{ text: "新しい", yomi: "あたらしい" }] },
-  { kanji: "古", words: [{ text: "古い", yomi: "ふるい" }] },
-  { kanji: "高", words: [{ text: "高い", yomi: "たかい" }] },
-  { kanji: "安", words: [{ text: "安い", yomi: "やすい" }] },
-  { kanji: "多", words: [{ text: "多い", yomi: "おおい" }] },
-  { kanji: "少", words: [{ text: "少ない", yomi: "すくない" }] },
-
-  { kanji: "町", words: [{ text: "町", yomi: "まち" }] },
-  { kanji: "村", words: [{ text: "村", yomi: "むら" }] }
+"一","右","雨","円","王","音","下","火","花","貝",
+"学","気","九","休","玉","金","空","月","犬","見",
+"五","口","校","左","三","山","子","四","糸","字",
+"耳","七","車","手","十","出","女","小","上","森",
+"人","水","正","生","青","夕","石","赤","千","川",
+"先","早","草","足","村","大","男","竹","中","虫",
+"町","天","田","土","二","日","入","年","白","八",
+"百","文","木","本","名","目","立","力","林","六"
 ];
 
-const iconMap = {
-  "一":"1️⃣","二":"2️⃣","三":"3️⃣","四":"4️⃣","五":"5️⃣","六":"6️⃣","七":"7️⃣","八":"8️⃣","九":"9️⃣","十":"🔟",
-  "百":"💯","千":"💴","上":"⬆️","中":"🎯","下":"⬇️","左":"⬅️","右":"➡️",
-  "大":"🐘","小":"🐭","月":"🌙","日":"☀️","年":"📅","早":"⏩",
-  "木":"🌳","林":"🌲","山":"⛰️","川":"🌊","土":"🟫","空":"☁️","田":"🌾","天":"🌤️",
-  "生":"🌱","花":"🌸","草":"🌿","虫":"🐛","犬":"🐶","人":"👤","男":"👦","女":"👧","子":"🧒",
-  "目":"👁️","耳":"👂","口":"👄","手":"✋","足":"🦶",
-  "見":"👀","音":"🔊","力":"💪","気":"🌬️","円":"💴",
-  "出":"🚪","入":"➡️","立":"🧍","休":"🛌","先":"👉","夕":"🌆",
-  "本":"📘","文":"📝","字":"🔤","学":"🎓","校":"🏫","名":"🏷️","車":"🚗",
-  "金":"🪙","雨":"🌧️","石":"🪨","糸":"🧵","貝":"🐚",
-  "赤":"🔴","青":"🔵","白":"⚪",
-  "新":"🆕","古":"🏺","高":"📈","安":"💴","多":"➕","少":"➖",
-  "町":"🏘️","村":"🏡"
+const readings = {
+"一":"いち","右":"みぎ","雨":"あめ","円":"えん",
+"王":"おう","音":"おと","下":"した","火":"ひ",
+"花":"はな","貝":"かい","学":"がく","気":"き",
+"九":"きゅう","休":"やす","玉":"たま","金":"かね",
+"空":"そら","月":"つき","犬":"いぬ","見":"み",
+"五":"ご","口":"くち","校":"こう","左":"ひだり",
+"三":"さん","山":"やま","子":"こ","四":"よん",
+"糸":"いと","字":"じ","耳":"みみ","七":"なな",
+"車":"くるま","手":"て","十":"じゅう","出":"で",
+"女":"おんな","小":"ちい","上":"うえ","森":"もり",
+"人":"ひと","水":"みず","正":"ただ","生":"い",
+"青":"あお","夕":"ゆう","石":"いし","赤":"あか",
+"千":"せん","川":"かわ","先":"さき","早":"はや",
+"草":"くさ","足":"あし","村":"むら","大":"おお",
+"男":"おとこ","竹":"たけ","中":"なか","虫":"むし",
+"町":"まち","天":"てん","田":"た","土":"つち",
+"二":"に","日":"ひ","入":"はい","年":"ねん",
+"白":"しろ","八":"はち","百":"ひゃく","文":"ぶん",
+"木":"き","本":"ほん","名":"な","目":"め",
+"立":"た","力":"ちから","林":"はやし","六":"ろく"
 };
 
-function getIcon(k){ return iconMap[k] || ""; }
+const kanjiGrid = document.getElementById("kanjiGrid");
 
-/* ■ 枠サイズ：140px（iPad最適） */
-function SquareBox({kanji,index,type,boxId,showGray}){
+kanjiList.forEach(kanji=>{
 
-  const ref = React.useRef(null);
-  const drawing = React.useRef(false);
-  const key = `${index}-${type}-${boxId}`;
+    const btn = document.createElement("button");
 
-  /* 高解像度対応 */
-  useEffect(()=>{
-    const canvas = ref.current;
-    const ctx = canvas.getContext("2d");
+    btn.className = "kanji-btn";
+    btn.innerText = kanji;
 
-    const ratio = window.devicePixelRatio || 1;
+    btn.onclick = ()=>openPractice(kanji);
 
-    canvas.width = 140 * ratio;
-    canvas.height = 140 * ratio;
-    canvas.style.width = "140px";
-    canvas.style.height = "140px";
+    kanjiGrid.appendChild(btn);
+});
 
-    ctx.scale(ratio, ratio);
-  },[]);
+const listScreen = document.getElementById("listScreen");
+const practiceScreen = document.getElementById("practiceScreen");
 
-  const pos = (e)=>{
-    const r = ref.current.getBoundingClientRect();
-    return {x:e.clientX-r.left, y:e.clientY-r.top};
-  };
+const modelKanji = document.getElementById("modelKanji");
+const titleKanji = document.getElementById("titleKanji");
+const reading = document.getElementById("reading");
 
-  const down = (e)=>{
-    e.preventDefault(); // ★青選択防止
-    drawing.current = true;
+let currentKanji = "石";
 
-    const ctx = ref.current.getContext("2d");
-    const p = pos(e);
 
-    ctx.strokeStyle = "black";
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(p.x,p.y);
-  };
+function openPractice(kanji){
 
-  const move = (e)=>{
-    if(!drawing.current) return;
+    // モード初期化
+    teacherMode = false;
+    eraserMode = false;
 
-    const ctx = ref.current.getContext("2d");
-    const p = pos(e);
+    currentKanji = kanji;
 
-    ctx.lineTo(p.x,p.y);
-    ctx.stroke();
-  };
+    modelKanji.innerText = kanji;
+    titleKanji.innerText = kanji;
+    reading.innerText = readings[kanji] || "";
 
-  const up = ()=>{
-    drawing.current = false;
-  };
+    // 前の文字を消す
+    const rect = drawCanvas.getBoundingClientRect();
+    drawCtx.clearRect(0,0,rect.width,rect.height);
 
-  return(
-    <div style={{
-      position:"relative",
-      width:140,
-      height:140,
-      border:"2px solid #333",
-      display:"flex",
-      justifyContent:"center",
-      alignItems:"center"
-    }}>
+    // メッセージ消去
+    document.getElementById("message").innerText = "";
 
-      {showGray && (
-        <div style={{
-          position:"absolute",
-          fontSize:60,
-          color:"#bbb",
-          fontWeight:"bold"
-        }}>
-          {kanji}
-        </div>
-      )}
+    listScreen.classList.add("hidden");
+    practiceScreen.classList.remove("hidden");
 
-      <canvas
-        ref={ref}
-        onPointerDown={down}
-        onPointerMove={move}
-        onPointerUp={up}
-        onPointerLeave={up}
-        style={{position:"absolute",touchAction:"none"}}
-      />
-    </div>
-  );
+    resizeCanvas();
+}
+  
+  
+
+
+document.getElementById("backBtn").onclick = ()=>{
+
+    practiceScreen.classList.add("hidden");
+    listScreen.classList.remove("hidden");
+};
+
+const gridCanvas = document.getElementById("gridCanvas");
+const drawCanvas = document.getElementById("drawCanvas");
+
+const gridCtx = gridCanvas.getContext("2d");
+const drawCtx = drawCanvas.getContext("2d");
+
+let drawing = false;
+let eraserMode = false;
+let teacherMode = false;
+
+function resizeCanvas(){
+
+    const rect = drawCanvas.parentElement.getBoundingClientRect();
+
+    const dpr = window.devicePixelRatio || 1;
+
+    [gridCanvas, drawCanvas].forEach(canvas=>{
+
+        canvas.width = rect.width * dpr;
+        canvas.height = rect.height * dpr;
+
+        canvas.style.width = rect.width + "px";
+        canvas.style.height = rect.height + "px";
+    });
+
+    gridCtx.setTransform(1,0,0,1,0,0);
+    drawCtx.setTransform(1,0,0,1,0,0);
+
+    gridCtx.scale(dpr,dpr);
+    drawCtx.scale(dpr,dpr);
+
+    drawGrid(rect.width, rect.height);
 }
 
-function KanjiApp(){
+function drawGrid(width,height){
 
-  const [index,setIndex] = React.useState(0);
-  const data = kanjiList[index];
+    gridCtx.clearRect(0,0,width,height);
 
-  const next = ()=> setIndex(i=>Math.min(i+1,kanjiList.length-1));
-  const prev = ()=> setIndex(i=>Math.max(i-1,0));
+    const cols = 4;
+    const rows = 4;
 
-  return(
-    <div style={{padding:20}}>
+    const w = width / cols;
+    const h = height / rows;
 
-      <div style={{display:"flex",gap:20,flexDirection:"row-reverse"}}>
+    gridCtx.strokeStyle = "#4aa3df";
+    gridCtx.lineWidth = 2;
 
-        <div style={{width:"33%",border:"1px solid #ccc",padding:10,textAlign:"center"}}>
-          <div style={{fontSize:60}}>{data.kanji}</div>
-          <div style={{fontSize:40}}>{getIcon(data.kanji)}</div>
+    for(let i=0;i<=cols;i++){
 
-          <div style={{fontSize:22}}>
-            {data.words[0].text}（{data.words[0].yomi}）
-          </div>
-        </div>
+        gridCtx.beginPath();
+        gridCtx.moveTo(i*w,0);
+        gridCtx.lineTo(i*w,height);
+        gridCtx.stroke();
+    }
 
-        <div style={{width:"33%",display:"flex",flexDirection:"column",gap:10}}>
-          {Array.from({length:5}).map((_,i)=>(
-            <SquareBox key={i} boxId={i} kanji={data.kanji} index={index} type="trace" showGray={true}/>
-          ))}
-        </div>
+    for(let j=0;j<=rows;j++){
 
-        <div style={{width:"33%",display:"flex",flexDirection:"column",gap:10}}>
-          {Array.from({length:5}).map((_,i)=>(
-            <SquareBox key={i} boxId={i} kanji={data.kanji} index={index} type="write" showGray={false}/>
-          ))}
-        </div>
+        gridCtx.beginPath();
+        gridCtx.moveTo(0,j*h);
+        gridCtx.lineTo(width,j*h);
+        gridCtx.stroke();
+    }
 
-      </div>
+    gridCtx.fillStyle = "rgba(0,0,0,0.08)";
+    gridCtx.font = `${w*0.7}px sans-serif`;
 
-      <div style={{marginTop:20,display:"flex",justifyContent:"space-between"}}>
-        <button onClick={prev}>もどる</button>
-        <button onClick={next}>つぎへ</button>
-      </div>
+    for(let i=0;i<4;i++){
 
-    </div>
-  );
+        gridCtx.fillText(currentKanji, i*w+w*0.15, h*0.75);
+    }
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(<KanjiApp/>);
+function getPos(e){
+
+    const rect = drawCanvas.getBoundingClientRect();
+
+    let clientX;
+    let clientY;
+
+    if(e.touches){
+
+        clientX = e.touches[0].clientX;
+        clientY = e.touches[0].clientY;
+
+    }else{
+
+        clientX = e.clientX;
+        clientY = e.clientY;
+    }
+
+    return{
+        x:clientX - rect.left,
+        y:clientY - rect.top
+    };
+}
+
+function startDraw(e){
+
+    drawing = true;
+
+    const pos = getPos(e);
+
+    drawCtx.beginPath();
+    drawCtx.moveTo(pos.x,pos.y);
+}
+
+function draw(e){
+
+    if(!drawing) return;
+
+    e.preventDefault();
+
+    const pos = getPos(e);
+
+    if(eraserMode){
+
+        drawCtx.globalCompositeOperation = "destination-out";
+        drawCtx.lineWidth = 30;
+
+    }else{
+
+        drawCtx.globalCompositeOperation = "source-over";
+
+        if(teacherMode){
+
+            drawCtx.strokeStyle = "red";
+
+        }else{
+
+            drawCtx.strokeStyle = "black";
+        }
+
+        drawCtx.lineWidth = 6;
+    }
+
+    drawCtx.lineCap = "round";
+    drawCtx.lineJoin = "round";
+
+    drawCtx.lineTo(pos.x,pos.y);
+    drawCtx.stroke();
+}
+
+function endDraw(){
+
+    drawing = false;
+}
+
+drawCanvas.addEventListener("mousedown",startDraw);
+drawCanvas.addEventListener("mousemove",draw);
+drawCanvas.addEventListener("mouseup",endDraw);
+drawCanvas.addEventListener("mouseleave",endDraw);
+
+drawCanvas.addEventListener("touchstart",startDraw,{passive:false});
+drawCanvas.addEventListener("touchmove",draw,{passive:false});
+drawCanvas.addEventListener("touchend",endDraw);
+
+document.getElementById("penBtn").onclick = ()=>{
+
+    eraserMode = false;
+};
+
+document.getElementById("eraserBtn").onclick = ()=>{
+
+    eraserMode = true;
+};
+
+document.getElementById("doneBtn").onclick = ()=>{
+
+    teacherMode = true;
+    eraserMode = false;
+
+    document.getElementById("message").innerText =
+    "先生の赤ペンモード";
+};
+
+document.getElementById("clearBtn").onclick = ()=>{
+
+    const rect = drawCanvas.getBoundingClientRect();
+
+    drawCtx.clearRect(0,0,rect.width,rect.height);
+};
+
+window.addEventListener("resize",resizeCanvas);
+
+resizeCanvas();
 
 </script>
+
 </body>
 </html>
