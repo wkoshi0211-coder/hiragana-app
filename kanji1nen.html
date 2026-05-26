@@ -64,12 +64,22 @@ button{
     border:2px solid #4aa3df;
     border-radius:12px;
     color:black;
+
+    user-select:none;
+    -webkit-user-select:none;
+    -webkit-touch-callout:none;
+}
+
+.kanji-btn.done{
+    background:#e53935;
+    color:white;
 }
 
 .sheet{
     background:white;
     border-radius:20px;
     padding:20px;
+    padding-bottom:60px;
     max-width:900px;
     margin:auto;
 }
@@ -93,10 +103,16 @@ button{
     display:flex;
     justify-content:center;
     align-items:center;
+    background:white;
 }
 
 .reading{
     font-size:28px;
+    margin-top:10px;
+}
+
+.illustration{
+    font-size:80px;
     margin-top:10px;
 }
 
@@ -107,8 +123,13 @@ button{
 
 .canvas-wrap{
     position:relative;
-    width:100%;
+
     aspect-ratio:1/1;
+
+    width:min(70vw, 65vh);
+
+    max-width:700px;
+
     border:2px solid #4aa3df;
     background:white;
 }
@@ -134,6 +155,8 @@ canvas{
 
 <body>
 
+<!-- 一覧画面 -->
+
 <div id="listScreen" class="screen">
 
     <div class="title">
@@ -143,6 +166,8 @@ canvas{
     <div class="kanji-grid" id="kanjiGrid"></div>
 
 </div>
+
+<!-- 練習画面 -->
 
 <div id="practiceScreen" class="screen hidden">
 
@@ -172,6 +197,10 @@ canvas{
 
                 <div class="reading" id="reading">
                     いし
+                </div>
+
+                <div id="illustration" class="illustration">
+                    🪨
                 </div>
 
             </div>
@@ -209,29 +238,192 @@ const kanjiList = [
 ];
 
 const readings = {
-"一":"いち","右":"みぎ","雨":"あめ","円":"えん",
-"王":"おう","音":"おと","下":"した","火":"ひ",
-"花":"はな","貝":"かい","学":"がく","気":"き",
-"九":"きゅう","休":"やす","玉":"たま","金":"かね",
-"空":"そら","月":"つき","犬":"いぬ","見":"み",
-"五":"ご","口":"くち","校":"こう","左":"ひだり",
-"三":"さん","山":"やま","子":"こ","四":"よん",
-"糸":"いと","字":"じ","耳":"みみ","七":"なな",
-"車":"くるま","手":"て","十":"じゅう","出":"で",
-"女":"おんな","小":"ちい","上":"うえ","森":"もり",
-"人":"ひと","水":"みず","正":"ただ","生":"い",
-"青":"あお","夕":"ゆう","石":"いし","赤":"あか",
-"千":"せん","川":"かわ","先":"さき","早":"はや",
-"草":"くさ","足":"あし","村":"むら","大":"おお",
-"男":"おとこ","竹":"たけ","中":"なか","虫":"むし",
-"町":"まち","天":"てん","田":"た","土":"つち",
-"二":"に","日":"ひ","入":"はい","年":"ねん",
-"白":"しろ","八":"はち","百":"ひゃく","文":"ぶん",
-"木":"き","本":"ほん","名":"な","目":"め",
-"立":"た","力":"ちから","林":"はやし","六":"ろく"
+
+"一":"いち",
+"右":"みぎ",
+"雨":"あめ",
+"円":"えん",
+"王":"おう",
+"音":"おと",
+"下":"した",
+"火":"ひ",
+"花":"はな",
+"貝":"かい",
+
+"学":"がく",
+"気":"き",
+"九":"きゅう",
+"休":"やす",
+"玉":"たま",
+"金":"かね",
+"空":"そら",
+"月":"つき",
+"犬":"いぬ",
+"見":"み",
+
+"五":"ご",
+"口":"くち",
+"校":"こう",
+"左":"ひだり",
+"三":"さん",
+"山":"やま",
+"子":"こ",
+"四":"よん",
+"糸":"いと",
+"字":"じ",
+
+"耳":"みみ",
+"七":"なな",
+"車":"くるま",
+"手":"て",
+"十":"じゅう",
+"出":"で",
+"女":"おんな",
+"小":"ちい",
+"上":"うえ",
+"森":"もり",
+
+"人":"ひと",
+"水":"みず",
+"正":"ただしい",
+"生":"いきる",
+"青":"あお",
+"夕":"ゆう",
+"石":"いし",
+"赤":"あか",
+"千":"せん",
+"川":"かわ",
+
+"先":"さき",
+"早":"はやい",
+"草":"くさ",
+"足":"あし",
+"村":"むら",
+"大":"おおきい",
+"男":"おとこ",
+"竹":"たけ",
+"中":"なか",
+"虫":"むし",
+
+"町":"まち",
+"天":"てん",
+"田":"たんぼ",
+"土":"つち",
+"二":"に",
+"日":"ひ",
+"入":"はいる",
+"年":"ねん",
+"白":"しろ",
+"八":"はち",
+
+"百":"ひゃく",
+"文":"ぶん",
+"木":"き",
+"本":"ほん",
+"名":"な",
+"目":"め",
+"立":"たつ",
+"力":"ちから",
+"林":"はやし",
+"六":"ろく"
+
+};
+
+const illustrations = {
+
+"一":"1️⃣",
+"右":"➡️",
+"雨":"☔",
+"円":"⭕",
+"王":"👑",
+"音":"🎵",
+"下":"⬇️",
+"火":"🔥",
+"花":"🌸",
+"貝":"🐚",
+
+"学":"🏫",
+"気":"🌤️",
+"九":"9️⃣",
+"休":"🛌",
+"玉":"💎",
+"金":"💰",
+"空":"☁️",
+"月":"🌙",
+"犬":"🐶",
+"見":"👀",
+
+"五":"5️⃣",
+"口":"👄",
+"校":"🏫",
+"左":"⬅️",
+"三":"3️⃣",
+"山":"⛰️",
+"子":"👦",
+"四":"4️⃣",
+"糸":"🧵",
+"字":"✏️",
+
+"耳":"👂",
+"七":"7️⃣",
+"車":"🚗",
+"手":"✋",
+"十":"🔟",
+"出":"🚪",
+"女":"👧",
+"小":"🐤",
+"上":"⬆️",
+"森":"🌳",
+
+"人":"🧍",
+"水":"💧",
+"正":"⭕",
+"生":"🌱",
+"青":"🔵",
+"夕":"🌆",
+"石":"🪨",
+"赤":"🔴",
+"千":"💴",
+"川":"🏞️",
+
+"先":"👉",
+"早":"⏰",
+"草":"🌱",
+"足":"🦶",
+"村":"🏘️",
+"大":"🐘",
+"男":"👦",
+"竹":"🎍",
+"中":"⭕",
+"虫":"🐞",
+
+"町":"🏘️",
+"天":"☀️",
+"田":"🌾",
+"土":"🟫",
+"二":"2️⃣",
+"日":"☀️",
+"入":"🚪",
+"年":"📅",
+"白":"⚪",
+"八":"8️⃣",
+
+"百":"💯",
+"文":"📄",
+"木":"🌲",
+"本":"📘",
+"名":"🏷️",
+"目":"👁️",
+"立":"🧍",
+"力":"💪",
+"林":"🌲",
+"六":"6️⃣"
+
 };
 
 const kanjiGrid = document.getElementById("kanjiGrid");
+
+let completedKanji = {};
 
 kanjiList.forEach(kanji=>{
 
@@ -240,7 +432,46 @@ kanjiList.forEach(kanji=>{
     btn.className = "kanji-btn";
     btn.innerText = kanji;
 
-    btn.onclick = ()=>openPractice(kanji);
+    // 通常タップ
+    btn.onclick = ()=>{
+
+        openPractice(kanji);
+    };
+
+    // 長押し
+    let pressTimer;
+
+    const startPress = ()=>{
+
+        pressTimer = setTimeout(()=>{
+
+            completedKanji[kanji] =
+            !completedKanji[kanji];
+
+            if(completedKanji[kanji]){
+
+                btn.classList.add("done");
+
+            }else{
+
+                btn.classList.remove("done");
+            }
+
+        },600);
+    };
+
+    const cancelPress = ()=>{
+
+        clearTimeout(pressTimer);
+    };
+
+    btn.addEventListener("touchstart",startPress);
+    btn.addEventListener("touchend",cancelPress);
+    btn.addEventListener("touchmove",cancelPress);
+
+    btn.addEventListener("mousedown",startPress);
+    btn.addEventListener("mouseup",cancelPress);
+    btn.addEventListener("mouseleave",cancelPress);
 
     kanjiGrid.appendChild(btn);
 });
@@ -251,43 +482,7 @@ const practiceScreen = document.getElementById("practiceScreen");
 const modelKanji = document.getElementById("modelKanji");
 const titleKanji = document.getElementById("titleKanji");
 const reading = document.getElementById("reading");
-
-let currentKanji = "石";
-
-
-function openPractice(kanji){
-
-    // モード初期化
-    teacherMode = false;
-    eraserMode = false;
-
-    currentKanji = kanji;
-
-    modelKanji.innerText = kanji;
-    titleKanji.innerText = kanji;
-    reading.innerText = readings[kanji] || "";
-
-    // 前の文字を消す
-    const rect = drawCanvas.getBoundingClientRect();
-    drawCtx.clearRect(0,0,rect.width,rect.height);
-
-    // メッセージ消去
-    document.getElementById("message").innerText = "";
-
-    listScreen.classList.add("hidden");
-    practiceScreen.classList.remove("hidden");
-
-    resizeCanvas();
-}
-  
-  
-
-
-document.getElementById("backBtn").onclick = ()=>{
-
-    practiceScreen.classList.add("hidden");
-    listScreen.classList.remove("hidden");
-};
+const illustration = document.getElementById("illustration");
 
 const gridCanvas = document.getElementById("gridCanvas");
 const drawCanvas = document.getElementById("drawCanvas");
@@ -295,9 +490,78 @@ const drawCanvas = document.getElementById("drawCanvas");
 const gridCtx = gridCanvas.getContext("2d");
 const drawCtx = drawCanvas.getContext("2d");
 
+let currentKanji = "石";
+
 let drawing = false;
 let eraserMode = false;
 let teacherMode = false;
+
+let savedDrawings = {};
+
+function openPractice(kanji){
+
+    if(currentKanji){
+
+        savedDrawings[currentKanji] =
+        drawCanvas.toDataURL();
+    }
+
+    teacherMode = false;
+    eraserMode = false;
+
+    currentKanji = kanji;
+
+    modelKanji.innerText = kanji;
+    titleKanji.innerText = kanji;
+
+    reading.innerText = readings[kanji] || "";
+
+    illustration.innerText =
+    illustrations[kanji] || "😀";
+
+    document.getElementById("message").innerText = "";
+
+    listScreen.classList.add("hidden");
+    practiceScreen.classList.remove("hidden");
+
+    resizeCanvas();
+
+    drawCtx.clearRect(
+        0,
+        0,
+        drawCanvas.width,
+        drawCanvas.height
+    );
+
+    if(savedDrawings[kanji]){
+
+        const img = new Image();
+
+        img.onload = ()=>{
+
+            drawCtx.drawImage(
+                img,
+                0,
+                0,
+                drawCanvas.width /
+                (window.devicePixelRatio || 1),
+                drawCanvas.height /
+                (window.devicePixelRatio || 1)
+            );
+        };
+
+        img.src = savedDrawings[kanji];
+    }
+}
+
+document.getElementById("backBtn").onclick = ()=>{
+
+    savedDrawings[currentKanji] =
+    drawCanvas.toDataURL();
+
+    practiceScreen.classList.add("hidden");
+    listScreen.classList.remove("hidden");
+};
 
 function resizeCanvas(){
 
@@ -352,12 +616,35 @@ function drawGrid(width,height){
         gridCtx.stroke();
     }
 
+    gridCtx.strokeStyle = "#cfe8f7";
+    gridCtx.lineWidth = 1;
+
+    for(let i=0;i<cols;i++){
+
+        for(let j=0;j<rows;j++){
+
+            gridCtx.beginPath();
+            gridCtx.moveTo(i*w + w/2, j*h);
+            gridCtx.lineTo(i*w + w/2, j*h + h);
+            gridCtx.stroke();
+
+            gridCtx.beginPath();
+            gridCtx.moveTo(i*w, j*h + h/2);
+            gridCtx.lineTo(i*w + w, j*h + h/2);
+            gridCtx.stroke();
+        }
+    }
+
     gridCtx.fillStyle = "rgba(0,0,0,0.08)";
     gridCtx.font = `${w*0.7}px sans-serif`;
 
     for(let i=0;i<4;i++){
 
-        gridCtx.fillText(currentKanji, i*w+w*0.15, h*0.75);
+        gridCtx.fillText(
+            currentKanji,
+            i*w+w*0.15,
+            h*0.75
+        );
     }
 }
 
@@ -448,6 +735,7 @@ drawCanvas.addEventListener("touchend",endDraw);
 document.getElementById("penBtn").onclick = ()=>{
 
     eraserMode = false;
+    teacherMode = false;
 };
 
 document.getElementById("eraserBtn").onclick = ()=>{
@@ -466,9 +754,14 @@ document.getElementById("doneBtn").onclick = ()=>{
 
 document.getElementById("clearBtn").onclick = ()=>{
 
-    const rect = drawCanvas.getBoundingClientRect();
+    drawCtx.clearRect(
+        0,
+        0,
+        drawCanvas.width,
+        drawCanvas.height
+    );
 
-    drawCtx.clearRect(0,0,rect.width,rect.height);
+    savedDrawings[currentKanji] = null;
 };
 
 window.addEventListener("resize",resizeCanvas);
