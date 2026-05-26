@@ -155,8 +155,6 @@ canvas{
 
 <body>
 
-<!-- 一覧画面 -->
-
 <div id="listScreen" class="screen">
 
     <div class="title">
@@ -166,8 +164,6 @@ canvas{
     <div class="kanji-grid" id="kanjiGrid"></div>
 
 </div>
-
-<!-- 練習画面 -->
 
 <div id="practiceScreen" class="screen hidden">
 
@@ -331,93 +327,22 @@ const readings = {
 
 const illustrations = {
 
-"一":"1️⃣",
-"右":"➡️",
-"雨":"☔",
-"円":"⭕",
-"王":"👑",
-"音":"🎵",
-"下":"⬇️",
-"火":"🔥",
-"花":"🌸",
-"貝":"🐚",
-
-"学":"🏫",
-"気":"🌤️",
-"九":"9️⃣",
-"休":"🛌",
-"玉":"💎",
-"金":"💰",
-"空":"☁️",
-"月":"🌙",
-"犬":"🐶",
-"見":"👀",
-
-"五":"5️⃣",
-"口":"👄",
-"校":"🏫",
-"左":"⬅️",
-"三":"3️⃣",
-"山":"⛰️",
-"子":"👦",
-"四":"4️⃣",
-"糸":"🧵",
-"字":"✏️",
-
-"耳":"👂",
-"七":"7️⃣",
-"車":"🚗",
-"手":"✋",
-"十":"🔟",
-"出":"🚪",
-"女":"👧",
-"小":"🐤",
-"上":"⬆️",
-"森":"🌳",
-
-"人":"🧍",
-"水":"💧",
-"正":"⭕",
-"生":"🌱",
-"青":"🔵",
-"夕":"🌆",
-"石":"🪨",
-"赤":"🔴",
-"千":"💴",
-"川":"🏞️",
-
-"先":"👉",
-"早":"⏰",
-"草":"🌱",
-"足":"🦶",
-"村":"🏘️",
-"大":"🐘",
-"男":"👦",
-"竹":"🎍",
-"中":"⭕",
-"虫":"🐞",
-
-"町":"🏘️",
-"天":"☀️",
-"田":"🌾",
-"土":"🟫",
-"二":"2️⃣",
-"日":"☀️",
-"入":"🚪",
-"年":"📅",
-"白":"⚪",
-"八":"8️⃣",
-
-"百":"💯",
-"文":"📄",
-"木":"🌲",
-"本":"📘",
-"名":"🏷️",
-"目":"👁️",
-"立":"🧍",
-"力":"💪",
-"林":"🌲",
-"六":"6️⃣"
+"一":"1️⃣","右":"➡️","雨":"☔","円":"⭕","王":"👑",
+"音":"🎵","下":"⬇️","火":"🔥","花":"🌸","貝":"🐚",
+"学":"🏫","気":"🌤️","九":"9️⃣","休":"🛌","玉":"💎",
+"金":"💰","空":"☁️","月":"🌙","犬":"🐶","見":"👀",
+"五":"5️⃣","口":"👄","校":"🏫","左":"⬅️","三":"3️⃣",
+"山":"⛰️","子":"👦","四":"4️⃣","糸":"🧵","字":"✏️",
+"耳":"👂","七":"7️⃣","車":"🚗","手":"✋","十":"🔟",
+"出":"🚪","女":"👧","小":"🐤","上":"⬆️","森":"🌳",
+"人":"🧍","水":"💧","正":"⭕","生":"🌱","青":"🔵",
+"夕":"🌆","石":"🪨","赤":"🔴","千":"💴","川":"🏞️",
+"先":"👉","早":"⏰","草":"🌱","足":"🦶","村":"🏘️",
+"大":"🐘","男":"👦","竹":"🎍","中":"⭕","虫":"🐞",
+"町":"🏘️","天":"☀️","田":"🌾","土":"🟫","二":"2️⃣",
+"日":"☀️","入":"🚪","年":"📅","白":"⚪","八":"8️⃣",
+"百":"💯","文":"📄","木":"🌲","本":"📘","名":"🏷️",
+"目":"👁️","立":"🧍","力":"💪","林":"🌲","六":"6️⃣"
 
 };
 
@@ -432,16 +357,16 @@ kanjiList.forEach(kanji=>{
     btn.className = "kanji-btn";
     btn.innerText = kanji;
 
-    // 通常タップ
     btn.onclick = ()=>{
 
         openPractice(kanji);
     };
 
-    // 長押し
     let pressTimer;
 
-    const startPress = ()=>{
+    const startPress = (e)=>{
+
+        e.preventDefault();
 
         pressTimer = setTimeout(()=>{
 
@@ -465,7 +390,7 @@ kanjiList.forEach(kanji=>{
         clearTimeout(pressTimer);
     };
 
-    btn.addEventListener("touchstart",startPress);
+    btn.addEventListener("touchstart",startPress,{passive:false});
     btn.addEventListener("touchend",cancelPress);
     btn.addEventListener("touchmove",cancelPress);
 
@@ -490,7 +415,7 @@ const drawCanvas = document.getElementById("drawCanvas");
 const gridCtx = gridCanvas.getContext("2d");
 const drawCtx = drawCanvas.getContext("2d");
 
-let currentKanji = "石";
+let currentKanji = null;
 
 let drawing = false;
 let eraserMode = false;
@@ -543,10 +468,8 @@ function openPractice(kanji){
                 img,
                 0,
                 0,
-                drawCanvas.width /
-                (window.devicePixelRatio || 1),
-                drawCanvas.height /
-                (window.devicePixelRatio || 1)
+                drawCanvas.width / (window.devicePixelRatio || 1),
+                drawCanvas.height / (window.devicePixelRatio || 1)
             );
         };
 
@@ -556,8 +479,11 @@ function openPractice(kanji){
 
 document.getElementById("backBtn").onclick = ()=>{
 
-    savedDrawings[currentKanji] =
-    drawCanvas.toDataURL();
+    if(currentKanji){
+
+        savedDrawings[currentKanji] =
+        drawCanvas.toDataURL();
+    }
 
     practiceScreen.classList.add("hidden");
     listScreen.classList.remove("hidden");
@@ -616,8 +542,11 @@ function drawGrid(width,height){
         gridCtx.stroke();
     }
 
-    gridCtx.strokeStyle = "#cfe8f7";
+    /* 十字点線 */
+
+    gridCtx.strokeStyle = "#9fd0ef";
     gridCtx.lineWidth = 1;
+    gridCtx.setLineDash([5,5]);
 
     for(let i=0;i<cols;i++){
 
@@ -634,6 +563,8 @@ function drawGrid(width,height){
             gridCtx.stroke();
         }
     }
+
+    gridCtx.setLineDash([]);
 
     gridCtx.fillStyle = "rgba(0,0,0,0.08)";
     gridCtx.font = `${w*0.7}px sans-serif`;
